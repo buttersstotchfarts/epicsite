@@ -1,65 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>i do declare</title>
-    <style>
-        body {
-            background-color: black;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>i do declare</title>
+<style>
+    body {
+        background-color: black;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
 
-        img {
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
-
-        /* Jelly animation keyframes */
-        @keyframes jelly {
-            0%   { transform: scale(1,1) rotate(0deg); }
-            25%  { transform: scale(1.2,0.8) rotate(5deg); }
-            50%  { transform: scale(0.9,1.1) rotate(-5deg); }
-            75%  { transform: scale(1.1,0.9) rotate(3deg); }
-            100% { transform: scale(1,1) rotate(0deg); }
-        }
-
-        .jelly {
-            animation: jelly 0.5s ease;
-        }
-    </style>
+    #fartButton {
+        cursor: pointer;
+        display: block;
+        transform-origin: center center;
+        user-select: none;
+        will-change: transform;
+    }
+</style>
 </head>
 <body>
-    <img src="button.png" alt="Fart Button" id="fartButton">
+<img src="button.png" id="fartButton" alt="Fart Button">
 
-    <script>
-        const button = document.getElementById('fartButton');
+<script>
+const button = document.getElementById('fartButton');
+const audioSrc = 'fart.mp3';
 
-        button.addEventListener('click', () => {
-            // Play the fart sound spammably
-            const audio = new Audio('fart.mp3');
-            audio.play();
+// Jelly physics variables
+let sx = 1, sy = 1, r = 0; // scaleX, scaleY, rotation
+let dx = 0, dy = 0, dr = 0; // velocities
+const spring = 0.02; // very soft spring for slow motion
+const damping = 0.92; // moderate damping for smooth decay
 
-            // Apply random jelly effect
-            button.style.animation = ''; // reset
-            void button.offsetWidth; // trigger reflow to restart animation
+function animate() {
+    // Apply soft spring physics toward normal (1,1 scale, 0 rotation)
+    dx += (1 - sx) * spring;
+    dy += (1 - sy) * spring;
+    dr += (0 - r) * spring;
 
-            // Optionally randomize duration or rotation slightly
-            const randomDuration = 0.4 + Math.random() * 0.3; // 0.4s to 0.7s
-            const randomRotation = 3 + Math.random() * 7; // 3deg to 10deg
-            button.style.animation = `jelly ${randomDuration}s ease`;
+    // Update positions
+    sx += dx;
+    sy += dy;
+    r += dr;
 
-            button.classList.add('jelly');
+    // Apply damping
+    dx *= damping;
+    dy *= damping;
+    dr *= damping;
 
-            // Remove class after animation ends
-            setTimeout(() => {
-                button.classList.remove('jelly');
-            }, randomDuration * 1000);
-        });
-    </script>
+    // Apply transform
+    button.style.transform = `scale(${sx},${sy}) rotate(${r}deg)`;
+
+    requestAnimationFrame(animate);
+}
+animate();
+
+button.addEventListener('click', (e) => {
+    // Play fart sound spammably
+    const audio = new Audio(audioSrc);
+    audio.play();
+
+    // Get click position relative to button center
+    const rect = button.getBoundingClientRect();
+    const cx = e.clientX - (rect.left + rect.width / 2);
+    const cy = e.clientY - (rect.top + rect.height / 2);
+    const maxOffset = Math.max(rect.width, rect.height) / 2;
+
+    // Apply “soft jelly force” depending on click position
+    const forceX = (cx / maxOffset) * 0.3; // smaller horizontal stretch
+    const forceY = (cy / maxOffset) * 0.3; // smaller vertical stretch
+    const forceR = (cx / maxOffset) * 10;  // gentle rotation
+
+    // Add to velocities (multiple clicks accumulate energy)
+    dx += forceX;
+    dy += -forceY;
+    dr += forceR;
+});
+</script>
 </body>
 </html>
