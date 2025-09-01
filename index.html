@@ -1,42 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Fart Button</title>
-  <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background-color: #000; /* Changed to black */
-    }
-    img {
-      cursor: pointer;
-      max-width: 300px;
-      transition: transform 0.1s;
-    }
-    img:active {
-      transform: scale(0.9);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fart Button</title>
+    <style>
+        body {
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        img {
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-  <!-- Removed the text showing "Butt" -->
-  <img src="button.png" alt="Fart Button" id="fartButton">
+    <img src="button.png" alt="Fart Button" id="fartButton">
 
-  <!-- Hidden audio -->
-  <audio id="fartSound" src="fart.mp3" preload="auto"></audio>
+    <script>
+        const button = document.getElementById('fartButton');
 
-  <script>
-    const fartButton = document.getElementById("fartButton");
-
-    fartButton.addEventListener("click", () => {
-      // Create a new Audio instance each time to allow overlapping plays
-      const audio = new Audio('fart.mp3');
-      audio.play();
-    });
-  </script>
+        button.addEventListener('click', () => {
+            // Create a new audio element each click so it can overlap
+            const audio = new Audio('fart.mp3');
+            audio.play();
+        });
+    </script>
 </body>
 </html>
