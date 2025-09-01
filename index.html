@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fart Button</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f4f4f4;
+    }
+    img {
+      cursor: pointer;
+      max-width: 300px;
+      transition: transform 0.1s;
+    }
+    img:active {
+      transform: scale(0.9);
+    }
+  </style>
+</head>
+<body>
+  <!-- Replace button.png with your custom PNG file -->
+  <img src="button.png" alt="Fart Button" id="fartButton">
+
+  <!-- Hidden audio -->
+  <audio id="fartSound" src="fart.mp3" preload="auto"></audio>
+
+  <script>
+    const fartButton = document.getElementById("fartButton");
+    const fartSound = document.getElementById("fartSound");
+
+    fartButton.addEventListener("click", () => {
+      fartSound.currentTime = 0; // rewind if clicked again quickly
+      fartSound.play();
+    });
+  </script>
+</body>
+</html>
