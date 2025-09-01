@@ -28,34 +28,33 @@
 
 <script>
 const button = document.getElementById('fartButton');
-const audioSrc = 'fart.mp3';
+const fartSrc = 'fart.mp3';
+const jamesSrc = 'james.mp3';
 
-// Prevent dragging the image
+let sx = 1, sy = 1, r = 0;
+let dx = 0, dy = 0, dr = 0;
+
+const spring = 0.02;
+const damping = 0.92;
+
+let fartSounds = [];
+let locked = false;
+
 button.addEventListener('dragstart', e => e.preventDefault());
 
-// Jelly physics variables
-let sx = 1, sy = 1, r = 0; // scaleX, scaleY, rotation
-let dx = 0, dy = 0, dr = 0; // velocities
-const spring = 0.02; // very soft spring for slow motion
-const damping = 0.92; // smooth decay
-
 function animate() {
-    // Soft spring physics toward normal
     dx += (1 - sx) * spring;
     dy += (1 - sy) * spring;
     dr += (0 - r) * spring;
 
-    // Update positions
     sx += dx;
     sy += dy;
     r += dr;
 
-    // Apply damping
     dx *= damping;
     dy *= damping;
     dr *= damping;
 
-    // Apply transform
     button.style.transform = `scale(${sx},${sy}) rotate(${r}deg)`;
 
     requestAnimationFrame(animate);
@@ -63,24 +62,37 @@ function animate() {
 animate();
 
 button.addEventListener('click', (e) => {
-    // Play fart sound spammably
-    const audio = new Audio(audioSrc);
-    audio.play();
+    if (locked) return;
 
-    // Click position relative to button center
+    if (Math.random() < 0.01) {
+        locked = true;
+        fartSounds.forEach(a => a.pause());
+        fartSounds = [];
+        button.src = 'james.png';
+        const jamesAudio = new Audio(jamesSrc);
+        jamesAudio.play();
+        jamesAudio.addEventListener('ended', () => {
+            button.src = 'button.png';
+            locked = false;
+        });
+        return;
+    }
+
+    const audio = new Audio(fartSrc);
+    audio.play();
+    fartSounds.push(audio);
+    audio.addEventListener('ended', () => {
+        fartSounds = fartSounds.filter(a => a !== audio);
+    });
+
     const rect = button.getBoundingClientRect();
     const cx = e.clientX - (rect.left + rect.width / 2);
     const cy = e.clientY - (rect.top + rect.height / 2);
     const maxOffset = Math.max(rect.width, rect.height) / 2;
 
-    // Apply soft jelly force depending on click
-    const forceX = (cx / maxOffset) * 0.3;
-    const forceY = (cy / maxOffset) * 0.3;
-    const forceR = (cx / maxOffset) * 10;
-
-    dx += forceX;
-    dy += -forceY;
-    dr += forceR;
+    dx += (cx / maxOffset) * 0.3;
+    dy += -(cy / maxOffset) * 0.3;
+    dr += (cx / maxOffset) * 10;
 });
 </script>
 </body>
