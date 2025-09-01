@@ -24,20 +24,23 @@
 </style>
 </head>
 <body>
-<img src="button.png" id="fartButton" alt="Fart Button">
+<img src="button.png" id="fartButton" alt="Fart Button" draggable="false">
 
 <script>
 const button = document.getElementById('fartButton');
 const audioSrc = 'fart.mp3';
 
+// Prevent dragging the image
+button.addEventListener('dragstart', e => e.preventDefault());
+
 // Jelly physics variables
 let sx = 1, sy = 1, r = 0; // scaleX, scaleY, rotation
 let dx = 0, dy = 0, dr = 0; // velocities
 const spring = 0.02; // very soft spring for slow motion
-const damping = 0.92; // moderate damping for smooth decay
+const damping = 0.92; // smooth decay
 
 function animate() {
-    // Apply soft spring physics toward normal (1,1 scale, 0 rotation)
+    // Soft spring physics toward normal
     dx += (1 - sx) * spring;
     dy += (1 - sy) * spring;
     dr += (0 - r) * spring;
@@ -64,18 +67,17 @@ button.addEventListener('click', (e) => {
     const audio = new Audio(audioSrc);
     audio.play();
 
-    // Get click position relative to button center
+    // Click position relative to button center
     const rect = button.getBoundingClientRect();
     const cx = e.clientX - (rect.left + rect.width / 2);
     const cy = e.clientY - (rect.top + rect.height / 2);
     const maxOffset = Math.max(rect.width, rect.height) / 2;
 
-    // Apply “soft jelly force” depending on click position
-    const forceX = (cx / maxOffset) * 0.3; // smaller horizontal stretch
-    const forceY = (cy / maxOffset) * 0.3; // smaller vertical stretch
-    const forceR = (cx / maxOffset) * 10;  // gentle rotation
+    // Apply soft jelly force depending on click
+    const forceX = (cx / maxOffset) * 0.3;
+    const forceY = (cy / maxOffset) * 0.3;
+    const forceR = (cx / maxOffset) * 10;
 
-    // Add to velocities (multiple clicks accumulate energy)
     dx += forceX;
     dy += -forceY;
     dr += forceR;
