@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fart Button</title>
+    <title>Jelly Fart Button</title>
     <style>
         body {
             background-color: black;
@@ -13,20 +13,23 @@
             height: 100vh;
             margin: 0;
         }
+
         img {
             cursor: pointer;
             transition: transform 0.1s;
         }
-        /* Jiggle animation */
-        @keyframes jiggle {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(10deg); }
-            50% { transform: rotate(-10deg); }
-            75% { transform: rotate(10deg); }
-            100% { transform: rotate(0deg); }
+
+        /* Jelly animation keyframes */
+        @keyframes jelly {
+            0%   { transform: scale(1,1) rotate(0deg); }
+            25%  { transform: scale(1.2,0.8) rotate(5deg); }
+            50%  { transform: scale(0.9,1.1) rotate(-5deg); }
+            75%  { transform: scale(1.1,0.9) rotate(3deg); }
+            100% { transform: scale(1,1) rotate(0deg); }
         }
-        .jiggle {
-            animation: jiggle 0.3s;
+
+        .jelly {
+            animation: jelly 0.5s ease;
         }
     </style>
 </head>
@@ -37,17 +40,25 @@
         const button = document.getElementById('fartButton');
 
         button.addEventListener('click', () => {
-            // Play the audio
+            // Play the fart sound spammably
             const audio = new Audio('fart.mp3');
             audio.play();
 
-            // Add jiggle class
-            button.classList.add('jiggle');
+            // Apply random jelly effect
+            button.style.animation = ''; // reset
+            void button.offsetWidth; // trigger reflow to restart animation
 
-            // Remove class after animation ends so it can be retriggered
+            // Optionally randomize duration or rotation slightly
+            const randomDuration = 0.4 + Math.random() * 0.3; // 0.4s to 0.7s
+            const randomRotation = 3 + Math.random() * 7; // 3deg to 10deg
+            button.style.animation = `jelly ${randomDuration}s ease`;
+
+            button.classList.add('jelly');
+
+            // Remove class after animation ends
             setTimeout(() => {
-                button.classList.remove('jiggle');
-            }, 300); // same as animation duration
+                button.classList.remove('jelly');
+            }, randomDuration * 1000);
         });
     </script>
 </body>
