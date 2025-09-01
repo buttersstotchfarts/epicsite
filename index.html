@@ -10,7 +10,7 @@
       align-items: center;
       height: 100vh;
       margin: 0;
-      background-color: #f4f4f4;
+      background-color: #000; /* Changed to black */
     }
     img {
       cursor: pointer;
@@ -23,7 +23,7 @@
   </style>
 </head>
 <body>
-  <!-- Replace button.png with your custom PNG file -->
+  <!-- Removed the text showing "Butt" -->
   <img src="button.png" alt="Fart Button" id="fartButton">
 
   <!-- Hidden audio -->
@@ -31,11 +31,11 @@
 
   <script>
     const fartButton = document.getElementById("fartButton");
-    const fartSound = document.getElementById("fartSound");
 
     fartButton.addEventListener("click", () => {
-      fartSound.currentTime = 0; // rewind if clicked again quickly
-      fartSound.play();
+      // Create a new Audio instance each time to allow overlapping plays
+      const audio = new Audio('fart.mp3');
+      audio.play();
     });
   </script>
 </body>
