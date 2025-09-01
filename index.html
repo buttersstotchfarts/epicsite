@@ -13,7 +13,6 @@
         height: 100vh;
         margin: 0;
     }
-
     #fartButton {
         cursor: pointer;
         display: block;
@@ -66,8 +65,7 @@ button.addEventListener('click', (e) => {
 
     if (Math.random() < 0.01) {
         locked = true;
-        fartSounds.forEach(a => a.pause());
-        fartSounds = [];
+        fartSounds.forEach(a => { try { a.pause(); } catch{} });
         button.src = 'james.png';
         const jamesAudio = new Audio(jamesSrc);
         jamesAudio.play();
@@ -81,6 +79,7 @@ button.addEventListener('click', (e) => {
     const audio = new Audio(fartSrc);
     audio.play();
     fartSounds.push(audio);
+
     audio.addEventListener('ended', () => {
         fartSounds = fartSounds.filter(a => a !== audio);
     });
