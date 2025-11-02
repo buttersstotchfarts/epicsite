@@ -22,32 +22,11 @@ body, html {
 #attack-container { position: absolute; width: 100%; height: 100%; pointer-events: none; }
 #face-wrapper { position: relative; perspective: 800px; }
 #face-wrapper.returning { transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
-
-/* MODIFIED: Using vmin for fluid scaling on all devices */
-#face {
-    cursor: pointer;
-    width: 30vmin;
-    height: 30vmin;
-    max-width: 250px; /* Cap size on large screens */
-    max-height: 250px;
-    border-radius: 50%;
-    user-select: none;
-    -webkit-user-drag: none;
-    pointer-events: all;
-}
+#face { width: 30vmin; height: 30vmin; max-width: 250px; max-height: 250px; cursor: pointer; border-radius: 50%; user-select: none; -webkit-user-drag: none; pointer-events: all; }
 
 .attacker-guide { position: absolute; transform: translate(-50%, -50%); z-index: 102; }
-.attacker {
-    position: absolute;
-    width: 20vmin; /* Scales with face */
-    max-width: 150px;
-    height: auto;
-    opacity: 0;
-    transform: translate(-50%, -50%);
-    animation: slap-anim 0.3s ease-in-out forwards;
-}
+.attacker { width: 20vmin; max-width: 150px; position: absolute; height: auto; opacity: 0; transform: translate(-50%, -50%); animation: slap-anim 0.3s ease-in-out forwards; }
 
-/* MODIFIED: Using vw for the starting translate to make it responsive */
 @keyframes slap-anim {
     0% { opacity: 0; transform: translate(60vw, -50%) rotate(-60deg); }
     30% { opacity: 1; transform: translate(50vw, -50%) rotate(45deg); }
@@ -56,31 +35,36 @@ body, html {
     100% { opacity: 0; transform: translate(50px, -50%) rotate(-25deg) skewX(30deg); }
 }
 
-.impact-effect {
-    position: absolute;
-    width: 35vmin; /* Scales with face */
-    max-width: 225px;
-    height: auto;
-    z-index: 101;
-    transform: translate(-50%, -50%);
-    animation: impact-anim 0.15s ease-out forwards;
-}
-
+.impact-effect { width: 35vmin; max-width: 225px; position: absolute; height: auto; z-index: 101; transform: translate(-50%, -50%); animation: impact-anim 0.15s ease-out forwards; }
 @keyframes impact-anim {
     0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
     100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); }
 }
 
-.particle {
+/* NEW: Gas effect styles */
+.gas-effect {
     position: absolute;
-    width: 15vmin; /* Scales with face */
-    max-width: 120px;
+    width: 30vmin;
+    max-width: 250px;
     height: auto;
+    z-index: 100; /* Behind other effects */
     pointer-events: none;
-    z-index: 101;
+    animation: gas-anim 1s ease-out forwards;
 }
 
-/* Media query for text is still useful for fine-tuning */
+@keyframes gas-anim {
+    0% {
+        opacity: 0.7;
+        /* Scale is set by JS */
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(2.5);
+    }
+}
+
+.particle { width: 15vmin; max-width: 120px; position: absolute; height: auto; pointer-events: none; z-index: 101; }
+
 @media (max-width: 600px) {
     #controls button, #controls a { padding: 8px 12px; font-size: 14px; }
     #button-bar { gap: 6px; }

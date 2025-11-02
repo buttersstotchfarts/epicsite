@@ -17,36 +17,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCharacterIndex = 0;
     
     const impactImages = ['impact1.png', 'impact2.png', 'impact3.png', 'impact4.png'];
-
     let returnToCenterTimer;
     let bounds = {};
     let physics = { x: 0, y: 0, vx: 0, vy: 0, angle: 0, va: 0, scaleX: 1, scaleY: 1, vsx: 0, vsy: 0, friction: 0.96, impactMultiplier: 24, bounceEnergyLoss: 0.8, spring: 0.03, damping: 0.92, isRunning: false };
-    
     let activeParticles = [];
     const gravity = 0.5;
 
-    function initialize() {
-        updateBounds();
-        window.addEventListener('resize', updateBounds);
-        controlButtons.forEach(button => { button.addEventListener('click', (event) => { event.stopPropagation(); switchCharacter(parseInt(button.dataset.character)); }); });
-        suggestButton.addEventListener('click', (event) => event.stopPropagation());
-        face.addEventListener('click', (event) => { event.stopPropagation(); triggerSlap(); });
-        document.body.addEventListener('click', triggerSlap);
-        switchCharacter(0);
-        requestAnimationFrame(updateParticles);
-    }
-
+    function initialize() { /* ... unchanged ... */ }
     function switchCharacter(index) { /* ... unchanged ... */ }
-
-    // NEW: Function to instantly reset the face's state
-    function resetFaceState() {
-        physics.isRunning = false;
-        faceWrapper.classList.remove('returning');
-        clearTimeout(returnToCenterTimer);
-        Object.assign(physics, { x: 0, y: 0, vx: 0, vy: 0, angle: 0, va: 0, scaleX: 1, scaleY: 1, vsx: 0, vsy: 0 });
-        faceWrapper.style.transform = 'translate(0, 0) rotate(0) scale(1,1)';
-    }
-
     function triggerSlap() {
         updateBounds(); 
         clearTimeout(returnToCenterTimer);
@@ -82,10 +60,56 @@ document.addEventListener('DOMContentLoaded', () => {
             if ((currentCharacterIndex === 0 && Math.random() < 0.1) || (currentCharacterIndex === 3 && Math.random() < 0.2)) {
                 sprayParticles();
             }
+            if (currentCharacterIndex === 0 && Math.random() < 0.5) {
+                createGasEffect(targetX, targetY);
+            }
+
         }, 180);
 
         returnToCenterTimer = setTimeout(resetFaceState, 1200);
         attacker.addEventListener('animationend', () => guide.remove());
+    }
+
+    // REWRITTEN: Function now creates 5 dynamic clouds at a 50ms interval
+    function createGasEffect(x, y) {
+        const gasCount = 5;
+        const interval = 50;
+        const styleSheet = document.createElement('style');
+        document.head.appendChild(styleSheet);
+
+        for (let i = 0; i < gasCount; i++) {
+            setTimeout(() => {
+                const gas = document.createElement('img');
+                gas.src = 'fart.png';
+                gas.className = 'gas-effect';
+
+                const offsetX = (Math.random() - 0.5) * (bounds.fWidth * 0.3);
+                const offsetY = (Math.random() - 0.5) * (bounds.fHeight * 0.3);
+                gas.style.left = `${x + offsetX}px`;
+                gas.style.top = `${y + offsetY}px`;
+
+                const startRotation = Math.random() * 360;
+                const endRotation = startRotation + (Math.random() - 0.5) * 180;
+                const endX = (Math.random() - 0.5) * 50;
+                const endY = (Math.random() - 0.5) * 50;
+                const duration = 0.8 + Math.random() * 0.4;
+
+                const animName = `gas_${Date.now()}_${i}`;
+                const keyframes = `
+                    @keyframes ${animName} {
+                        0% { opacity: 0.7; transform: translate(-50%, -50%) scale(0.5) rotate(${startRotation}deg); }
+                        100% { opacity: 0; transform: translate(calc(-50% + ${endX}px), calc(-50% + ${endY}px)) scale(2.5) rotate(${endRotation}deg); }
+                    }
+                `;
+                styleSheet.sheet.insertRule(keyframes, styleSheet.sheet.cssRules.length);
+                
+                gas.style.animation = `${animName} ${duration}s ease-out forwards`;
+                
+                attackContainer.appendChild(gas);
+                gas.addEventListener('animationend', () => gas.remove());
+            }, i * interval);
+        }
+        setTimeout(() => styleSheet.remove(), 1200 + (gasCount * interval));
     }
 
     function createImpactEffect(x, y) { /* ... unchanged ... */ }
@@ -93,41 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateParticles() { /* ... unchanged ... */ }
     function updateBounds() { bounds = { wWidth: window.innerWidth, wHeight: window.innerHeight, fWidth: faceWrapper.offsetWidth, fHeight: faceWrapper.offsetHeight }; }
     function applyForce(forceX, forceY) { physics.vx += forceX * physics.impactMultiplier; physics.vy += forceY * physics.impactMultiplier; physics.va += (Math.random() - 0.5) * 8; physics.vsx -= 0.3; physics.vsy += 0.3; if (!physics.isRunning) { physics.isRunning = true; updatePhysics(); } }
-    
-    function updatePhysics() {
-        if (!physics.isRunning) return;
-
-        // NEW: Check if completely out of bounds and reset
-        const outOfBoundsX = Math.abs(physics.x) > (bounds.wWidth / 2 + bounds.fWidth / 2);
-        const outOfBoundsY = Math.abs(physics.y) > (bounds.wHeight / 2 + bounds.fHeight / 2);
-        if (outOfBoundsX || outOfBoundsY) {
-            resetFaceState();
-            return; // Stop this frame's physics calculation
-        }
-
-        const nextX = physics.x + physics.vx; const nextY = physics.y + physics.vy;
-        const halfW = bounds.fWidth / 2; const halfH = bounds.fHeight / 2;
-        if ((nextX + halfW > bounds.wWidth / 2 && physics.vx > 0) || (nextX - halfW < -bounds.wWidth / 2 && physics.vx < 0)) { physics.vx *= -physics.bounceEnergyLoss; }
-        if ((nextY + halfH > bounds.wHeight / 2 && physics.vy > 0) || (nextY - halfH < -bounds.wHeight / 2 && physics.vy < 0)) { physics.vy *= -physics.bounceEnergyLoss; }
-        physics.vx *= physics.friction; physics.vy *= physics.friction; physics.va *= physics.friction;
-        physics.x += physics.vx; physics.y += physics.vy; physics.angle += physics.va;
-
-        physics.vsx += (1 - physics.scaleX) * physics.spring;
-        physics.vsy += (1 - physics.scaleY) * physics.spring;
-        physics.vsx *= physics.damping;
-        physics.vsy *= physics.damping;
-        physics.scaleX += physics.vsx;
-        physics.scaleY += physics.vsy;
-
-        faceWrapper.style.transform = `translate(${physics.x}px, ${physics.y}px) rotate(${physics.angle}deg) scale(${physics.scaleX}, ${physics.scaleY})`;
-        
-        if (Math.abs(physics.vx) < 0.1 && Math.abs(physics.vy) < 0.1 && Math.abs(physics.va) < 0.1 && Math.abs(1 - physics.scaleX) < 0.01 && Math.abs(1 - physics.scaleY) < 0.01) {
-            physics.isRunning = false;
-        } else {
-            requestAnimationFrame(updatePhysics);
-        }
-    }
-
+    function resetFaceState() { physics.isRunning = false; faceWrapper.classList.remove('returning'); clearTimeout(returnToCenterTimer); Object.assign(physics, { x: 0, y: 0, vx: 0, vy: 0, angle: 0, va: 0, scaleX: 1, scaleY: 1, vsx: 0, vsy: 0 }); faceWrapper.style.transform = 'translate(0, 0) rotate(0) scale(1,1)'; }
+    function updatePhysics() { if (!physics.isRunning) return; const outOfBoundsX = Math.abs(physics.x) > (bounds.wWidth / 2 + bounds.fWidth); const outOfBoundsY = Math.abs(physics.y) > (bounds.wHeight / 2 + bounds.fHeight); if (outOfBoundsX || outOfBoundsY) { resetFaceState(); return; } const nextX = physics.x + physics.vx; const nextY = physics.y + physics.vy; const halfW = bounds.fWidth / 2; const halfH = bounds.fHeight / 2; if ((nextX + halfW > bounds.wWidth / 2 && physics.vx > 0) || (nextX - halfW < -bounds.wWidth / 2 && physics.vx < 0)) { physics.vx *= -physics.bounceEnergyLoss; } if ((nextY + halfH > bounds.wHeight / 2 && physics.vy > 0) || (nextY - halfH < -bounds.wHeight / 2 && physics.vy < 0)) { physics.vy *= -physics.bounceEnergyLoss; } physics.vx *= physics.friction; physics.vy *= physics.friction; physics.va *= physics.friction; physics.x += physics.vx; physics.y += physics.vy; physics.angle += physics.va; physics.vsx += (1 - physics.scaleX) * physics.spring; physics.vsy += (1 - physics.scaleY) * physics.spring; physics.vsx *= physics.damping; physics.vsy *= physics.damping; physics.scaleX += physics.vsx; physics.scaleY += physics.vsy; faceWrapper.style.transform = `translate(${physics.x}px, ${physics.y}px) rotate(${physics.angle}deg) scale(${physics.scaleX}, ${physics.scaleY})`; if (Math.abs(physics.vx) < 0.1 && Math.abs(physics.vy) < 0.1 && Math.abs(physics.va) < 0.1 && Math.abs(1 - physics.scaleX) < 0.01 && Math.abs(1 - physics.scaleY) < 0.01) { physics.isRunning = false; } else { requestAnimationFrame(updatePhysics); } }
+    function initialize() { updateBounds(); window.addEventListener('resize', updateBounds); controlButtons.forEach(button => { button.addEventListener('click', (event) => { event.stopPropagation(); switchCharacter(parseInt(button.dataset.character)); }); }); suggestButton.addEventListener('click', (event) => event.stopPropagation()); face.addEventListener('click', (event) => { event.stopPropagation(); triggerSlap(); }); document.body.addEventListener('click', triggerSlap); switchCharacter(0); requestAnimationFrame(updateParticles); }
     function switchCharacter(index) { if (index >= characters.length) return; currentCharacterIndex = index; const char = characters[index]; face.src = char.image; if (!Array.isArray(char.sound)) { characterSound.src = char.sound; } resetFaceState(); }
     function createImpactEffect(x, y) { const impact = document.createElement('img'); impact.src = impactImages[Math.floor(Math.random() * impactImages.length)]; impact.className = 'impact-effect'; impact.style.left = `${x}px`; impact.style.top = `${y}px`; attackContainer.appendChild(impact); impact.addEventListener('animationend', () => impact.remove()); }
     function sprayParticles() { florpSound.cloneNode(true).play(); const particleCount = 5; const baseAngle = Math.random() * 2 * Math.PI; const sprayArc = Math.PI / 3; for (let i = 0; i < particleCount; i++) { const particleEl = document.createElement('img'); particleEl.src = 'immediate.png'; particleEl.className = 'particle'; const angle = baseAngle + (Math.random() - 0.5) * sprayArc; const speed = 15 + Math.random() * 10; const particleObj = { el: particleEl, x: physics.x, y: physics.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, rotation: Math.random() * 360, rotationVelocity: (Math.random() - 0.5) * 20 }; activeParticles.push(particleObj); attackContainer.appendChild(particleEl); } }
