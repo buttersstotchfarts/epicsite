@@ -1,98 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>i do declare</title>
-<style>
-    body {
-        background-color: black;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
-    }
-    #fartButton {
-        cursor: pointer;
-        display: block;
-        transform-origin: center center;
-        user-select: none;
-        will-change: transform;
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>i do declare</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<img src="button.png" id="fartButton" alt="Fart Button" draggable="false">
+    <div id="controls">
+        <button data-character="0">Face</button>
+        <button data-character="1">James</button>
+        <button data-character="2">Alex</button>
+        <button data-character="3">Jim</button>
+        <a href="https://jarlightsabers.straw.page" id="suggest-button" target="_blank">Suggest</a>
+    </div>
 
-<script>
-const button = document.getElementById('fartButton');
-const fartSrc = 'fart.mp3';
-const jamesSrc = 'james.mp3';
+    <div id="attack-container"></div>
 
-let sx = 1, sy = 1, r = 0;
-let dx = 0, dy = 0, dr = 0;
+    <div id="face-wrapper">
+        <!-- MODIFIED: SVG filter style has been removed -->
+        <img src="face.png" id="face" alt="face">
+    </div>
 
-const spring = 0.02;
-const damping = 0.92;
+    <audio id="character-sound" preload="auto"></audio>
+    <audio id="slap-sound" preload="auto" src="slap.mp3"></audio>
 
-let fartSounds = [];
-let locked = false;
+    <!-- REMOVED: The entire SVG filter block is gone -->
 
-button.addEventListener('dragstart', e => e.preventDefault());
-
-function animate() {
-    dx += (1 - sx) * spring;
-    dy += (1 - sy) * spring;
-    dr += (0 - r) * spring;
-
-    sx += dx;
-    sy += dy;
-    r += dr;
-
-    dx *= damping;
-    dy *= damping;
-    dr *= damping;
-
-    button.style.transform = `scale(${sx},${sy}) rotate(${r}deg)`;
-
-    requestAnimationFrame(animate);
-}
-animate();
-
-button.addEventListener('click', (e) => {
-    if (locked) return;
-
-    if (Math.random() < 0.01) {
-        locked = true;
-        fartSounds.forEach(a => { try { a.pause(); } catch{} });
-        button.src = 'james.png';
-        const jamesAudio = new Audio(jamesSrc);
-        jamesAudio.play();
-        jamesAudio.addEventListener('ended', () => {
-            button.src = 'button.png';
-            locked = false;
-        });
-        return;
-    }
-
-    const audio = new Audio(fartSrc);
-    audio.play();
-    fartSounds.push(audio);
-
-    audio.addEventListener('ended', () => {
-        fartSounds = fartSounds.filter(a => a !== audio);
-    });
-
-    const rect = button.getBoundingClientRect();
-    const cx = e.clientX - (rect.left + rect.width / 2);
-    const cy = e.clientY - (rect.top + rect.height / 2);
-    const maxOffset = Math.max(rect.width, rect.height) / 2;
-
-    dx += (cx / maxOffset) * 0.3;
-    dy += -(cy / maxOffset) * 0.3;
-    dr += (cx / maxOffset) * 10;
-});
-</script>
+    <script src="script.js"></script>
 </body>
 </html>

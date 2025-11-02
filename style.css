@@ -1,0 +1,70 @@
+body, html {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    display: flex; justify-content: center; align-items: center;
+    background-color: #31353b;
+    overflow: hidden;
+    font-family: sans-serif;
+}
+#controls { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; align-items: center; gap: 10px; }
+#controls button, #controls a {
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+#controls button {
+    background-color: #4f545c;
+}
+#controls button:hover {
+    background-color: #686e78;
+}
+#suggest-button {
+    background-color: #c85050;
+}
+#suggest-button:hover {
+    background-color: #d16060;
+}
+#attack-container { position: absolute; width: 100%; height: 100%; pointer-events: none; }
+#face-wrapper { position: relative; perspective: 800px; }
+#face-wrapper.returning { transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
+#face { cursor: pointer; width: 250px; height: 250px; border-radius: 50%; user-select: none; -webkit-user-drag: none; }
+
+.attacker-guide {
+    position: absolute;
+    transform: translate(-50%, -50%);
+}
+.attacker {
+    position: absolute;
+    width: 150px;
+    height: auto;
+    opacity: 0;
+    transform: translate(-50%, -50%);
+    animation: slap-anim 0.3s ease-in-out forwards;
+}
+
+@keyframes slap-anim {
+    0% {
+        opacity: 0;
+        transform: translate(350px, -50%) rotate(-60deg);
+    }
+    30% {
+        opacity: 1;
+        transform: translate(300px, -50%) rotate(45deg);
+    }
+    60% {
+        transform: translate(0px, -50%) rotate(-20deg) skewX(30deg);
+    }
+    80% {
+        opacity: 1;
+        transform: translate(50px, -50%) rotate(-25deg) skewX(30deg);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(50px, -50%) rotate(-25deg) skewX(30deg);
+    }
+}
