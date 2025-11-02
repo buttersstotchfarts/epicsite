@@ -4,24 +4,12 @@ body, html {
     background-color: #31353b;
     overflow: hidden;
     font-family: sans-serif;
-    /* --- SELECTION & HIGHLIGHT PREVENTION --- */
     user-select: none;
-    -webkit-user-select: none; /* Safari */
-    -ms-user-select: none; /* IE 10+ */
-    /* NEW: Removes the blue tap highlight on mobile */
+    -webkit-user-select: none;
     -webkit-tap-highlight-color: transparent;
 }
 
-#credit-text {
-    position: absolute;
-    bottom: 15px;
-    left: 15px;
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 14px;
-    pointer-events: none;
-    z-index: 99;
-}
-
+#credit-text { position: absolute; bottom: 15px; left: 15px; color: rgba(255, 255, 255, 0.5); font-size: 14px; pointer-events: none; z-index: 99; }
 #controls { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; flex-direction: column; align-items: center; gap: 8px; }
 #button-bar { display: flex; align-items: center; gap: 10px; }
 #instruction-text { margin: 0; padding: 0; color: rgba(255, 255, 255, 0.7); font-size: 14px; }
@@ -36,7 +24,7 @@ body, html {
 #face-wrapper.returning { transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
 #face { cursor: pointer; width: 250px; height: 250px; border-radius: 50%; user-select: none; -webkit-user-drag: none; pointer-events: all; }
 
-.attacker-guide { position: absolute; transform: translate(-50%, -50%); }
+.attacker-guide { position: absolute; transform: translate(-50%, -50%); z-index: 102; }
 .attacker { position: absolute; width: 150px; height: auto; opacity: 0; transform: translate(-50%, -50%); animation: slap-anim 0.3s ease-in-out forwards; }
 
 @keyframes slap-anim {
@@ -47,13 +35,29 @@ body, html {
     100% { opacity: 0; transform: translate(50px, -50%) rotate(-25deg) skewX(30deg); }
 }
 
-.particle {
+.impact-effect {
     position: absolute;
-    width: 120px;
+    width: 225px;
     height: auto;
-    pointer-events: none;
     z-index: 101;
+    transform: translate(-50%, -50%);
+    /* MODIFIED: Faster animation */
+    animation: impact-anim 0.15s ease-out forwards;
 }
+
+@keyframes impact-anim {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        /* MODIFIED: Bigger scale */
+        transform: translate(-50%, -50%) scale(1.6);
+    }
+}
+
+.particle { position: absolute; width: 120px; height: auto; pointer-events: none; z-index: 101; }
 
 @media (max-width: 600px) {
     #controls button, #controls a { padding: 8px 12px; font-size: 14px; }
@@ -61,4 +65,5 @@ body, html {
     #instruction-text, #credit-text { font-size: 12px; }
     #face { width: 180px; height: 180px; }
     .attacker { width: 110px; }
+    .impact-effect { width: 165px; }
 }
