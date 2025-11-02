@@ -22,14 +22,35 @@ body, html {
 #attack-container { position: absolute; width: 100%; height: 100%; pointer-events: none; }
 #face-wrapper { position: relative; perspective: 800px; }
 #face-wrapper.returning { transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
-#face { cursor: pointer; width: 250px; height: 250px; border-radius: 50%; user-select: none; -webkit-user-drag: none; pointer-events: all; }
+
+/* MODIFIED: Using vmin for fluid scaling on all devices */
+#face {
+    cursor: pointer;
+    width: 30vmin;
+    height: 30vmin;
+    max-width: 250px; /* Cap size on large screens */
+    max-height: 250px;
+    border-radius: 50%;
+    user-select: none;
+    -webkit-user-drag: none;
+    pointer-events: all;
+}
 
 .attacker-guide { position: absolute; transform: translate(-50%, -50%); z-index: 102; }
-.attacker { position: absolute; width: 150px; height: auto; opacity: 0; transform: translate(-50%, -50%); animation: slap-anim 0.3s ease-in-out forwards; }
+.attacker {
+    position: absolute;
+    width: 20vmin; /* Scales with face */
+    max-width: 150px;
+    height: auto;
+    opacity: 0;
+    transform: translate(-50%, -50%);
+    animation: slap-anim 0.3s ease-in-out forwards;
+}
 
+/* MODIFIED: Using vw for the starting translate to make it responsive */
 @keyframes slap-anim {
-    0% { opacity: 0; transform: translate(350px, -50%) rotate(-60deg); }
-    30% { opacity: 1; transform: translate(300px, -50%) rotate(45deg); }
+    0% { opacity: 0; transform: translate(60vw, -50%) rotate(-60deg); }
+    30% { opacity: 1; transform: translate(50vw, -50%) rotate(45deg); }
     60% { transform: translate(0px, -50%) rotate(-20deg) skewX(30deg); }
     80% { opacity: 1; transform: translate(50px, -50%) rotate(-25deg) skewX(30deg); }
     100% { opacity: 0; transform: translate(50px, -50%) rotate(-25deg) skewX(30deg); }
@@ -37,33 +58,31 @@ body, html {
 
 .impact-effect {
     position: absolute;
-    width: 225px;
+    width: 35vmin; /* Scales with face */
+    max-width: 225px;
     height: auto;
     z-index: 101;
     transform: translate(-50%, -50%);
-    /* MODIFIED: Faster animation */
     animation: impact-anim 0.15s ease-out forwards;
 }
 
 @keyframes impact-anim {
-    0% {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
-    }
-    100% {
-        opacity: 0;
-        /* MODIFIED: Bigger scale */
-        transform: translate(-50%, -50%) scale(1.6);
-    }
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); }
 }
 
-.particle { position: absolute; width: 120px; height: auto; pointer-events: none; z-index: 101; }
+.particle {
+    position: absolute;
+    width: 15vmin; /* Scales with face */
+    max-width: 120px;
+    height: auto;
+    pointer-events: none;
+    z-index: 101;
+}
 
+/* Media query for text is still useful for fine-tuning */
 @media (max-width: 600px) {
     #controls button, #controls a { padding: 8px 12px; font-size: 14px; }
     #button-bar { gap: 6px; }
     #instruction-text, #credit-text { font-size: 12px; }
-    #face { width: 180px; height: 180px; }
-    .attacker { width: 110px; }
-    .impact-effect { width: 165px; }
 }

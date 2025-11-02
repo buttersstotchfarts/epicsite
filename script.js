@@ -25,8 +25,27 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeParticles = [];
     const gravity = 0.5;
 
-    function initialize() { /* ... unchanged ... */ }
+    function initialize() {
+        updateBounds();
+        window.addEventListener('resize', updateBounds);
+        controlButtons.forEach(button => { button.addEventListener('click', (event) => { event.stopPropagation(); switchCharacter(parseInt(button.dataset.character)); }); });
+        suggestButton.addEventListener('click', (event) => event.stopPropagation());
+        face.addEventListener('click', (event) => { event.stopPropagation(); triggerSlap(); });
+        document.body.addEventListener('click', triggerSlap);
+        switchCharacter(0);
+        requestAnimationFrame(updateParticles);
+    }
+
     function switchCharacter(index) { /* ... unchanged ... */ }
+
+    // NEW: Function to instantly reset the face's state
+    function resetFaceState() {
+        physics.isRunning = false;
+        faceWrapper.classList.remove('returning');
+        clearTimeout(returnToCenterTimer);
+        Object.assign(physics, { x: 0, y: 0, vx: 0, vy: 0, angle: 0, va: 0, scaleX: 1, scaleY: 1, vsx: 0, vsy: 0 });
+        faceWrapper.style.transform = 'translate(0, 0) rotate(0) scale(1,1)';
+    }
 
     function triggerSlap() {
         updateBounds(); 
@@ -56,19 +75,16 @@ document.addEventListener('DOMContentLoaded', () => {
             else { characterSound.cloneNode(true).play(); }
             
             createImpactEffect(targetX, targetY);
-
             const faceAngleRad = physics.angle * Math.PI / 180;
             const finalImpactVector = { x: Math.cos(faceAngleRad) * impactVector.x - Math.sin(faceAngleRad) * impactVector.y, y: Math.sin(faceAngleRad) * impactVector.x + Math.cos(faceAngleRad) * impactVector.y };
             applyForce(finalImpactVector.x, finalImpactVector.y);
 
-            // MODIFIED: Check for Butt (index 0) with a 1/10 chance OR Jim (index 3) with a 1/5 chance
             if ((currentCharacterIndex === 0 && Math.random() < 0.1) || (currentCharacterIndex === 3 && Math.random() < 0.2)) {
                 sprayParticles();
             }
-
         }, 180);
 
-        returnToCenterTimer = setTimeout(() => { /* ... unchanged ... */ }, 1200);
+        returnToCenterTimer = setTimeout(resetFaceState, 1200);
         attacker.addEventListener('animationend', () => guide.remove());
     }
 
@@ -77,12 +93,45 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateParticles() { /* ... unchanged ... */ }
     function updateBounds() { bounds = { wWidth: window.innerWidth, wHeight: window.innerHeight, fWidth: faceWrapper.offsetWidth, fHeight: faceWrapper.offsetHeight }; }
     function applyForce(forceX, forceY) { physics.vx += forceX * physics.impactMultiplier; physics.vy += forceY * physics.impactMultiplier; physics.va += (Math.random() - 0.5) * 8; physics.vsx -= 0.3; physics.vsy += 0.3; if (!physics.isRunning) { physics.isRunning = true; updatePhysics(); } }
-    function updatePhysics() { if (!physics.isRunning) return; const nextX = physics.x + physics.vx; const nextY = physics.y + physics.vy; const halfW = bounds.fWidth / 2; const halfH = bounds.fHeight / 2; if ((nextX + halfW > bounds.wWidth / 2 && physics.vx > 0) || (nextX - halfW < -bounds.wWidth / 2 && physics.vx < 0)) { physics.vx *= -physics.bounceEnergyLoss; } if ((nextY + halfH > bounds.wHeight / 2 && physics.vy > 0) || (nextY - halfH < -bounds.wHeight / 2 && physics.vy < 0)) { physics.vy *= -physics.bounceEnergyLoss; } physics.vx *= physics.friction; physics.vy *= physics.friction; physics.va *= physics.friction; physics.x += physics.vx; physics.y += physics.vy; physics.angle += physics.va; physics.vsx += (1 - physics.scaleX) * physics.spring; physics.vsy += (1 - physics.scaleY) * physics.spring; physics.vsx *= physics.damping; physics.vsy *= physics.damping; physics.scaleX += physics.vsx; physics.scaleY += physics.vsy; faceWrapper.style.transform = `translate(${physics.x}px, ${physics.y}px) rotate(${physics.angle}deg) scale(${physics.scaleX}, ${physics.scaleY})`; if (Math.abs(physics.vx) < 0.1 && Math.abs(physics.vy) < 0.1 && Math.abs(physics.va) < 0.1 && Math.abs(1 - physics.scaleX) < 0.01 && Math.abs(1 - physics.scaleY) < 0.01) { physics.isRunning = false; } else { requestAnimationFrame(updatePhysics); } }
-    function initialize() { updateBounds(); window.addEventListener('resize', updateBounds); controlButtons.forEach(button => { button.addEventListener('click', (event) => { event.stopPropagation(); switchCharacter(parseInt(button.dataset.character)); }); }); suggestButton.addEventListener('click', (event) => event.stopPropagation()); face.addEventListener('click', (event) => { event.stopPropagation(); triggerSlap(); }); document.body.addEventListener('click', triggerSlap); switchCharacter(0); requestAnimationFrame(updateParticles); }
-    function switchCharacter(index) { if (index >= characters.length) return; currentCharacterIndex = index; const char = characters[index]; face.src = char.image; if (!Array.isArray(char.sound)) { characterSound.src = char.sound; } clearTimeout(returnToCenterTimer); faceWrapper.classList.remove('returning'); faceWrapper.style.transform = 'translate(0, 0) rotate(0) scale(1,1)'; Object.assign(physics, { x: 0, y: 0, vx: 0, vy: 0, angle: 0, va: 0, scaleX: 1, scaleY: 1, vsx: 0, vsy: 0, isRunning: false }); }
+    
+    function updatePhysics() {
+        if (!physics.isRunning) return;
+
+        // NEW: Check if completely out of bounds and reset
+        const outOfBoundsX = Math.abs(physics.x) > (bounds.wWidth / 2 + bounds.fWidth / 2);
+        const outOfBoundsY = Math.abs(physics.y) > (bounds.wHeight / 2 + bounds.fHeight / 2);
+        if (outOfBoundsX || outOfBoundsY) {
+            resetFaceState();
+            return; // Stop this frame's physics calculation
+        }
+
+        const nextX = physics.x + physics.vx; const nextY = physics.y + physics.vy;
+        const halfW = bounds.fWidth / 2; const halfH = bounds.fHeight / 2;
+        if ((nextX + halfW > bounds.wWidth / 2 && physics.vx > 0) || (nextX - halfW < -bounds.wWidth / 2 && physics.vx < 0)) { physics.vx *= -physics.bounceEnergyLoss; }
+        if ((nextY + halfH > bounds.wHeight / 2 && physics.vy > 0) || (nextY - halfH < -bounds.wHeight / 2 && physics.vy < 0)) { physics.vy *= -physics.bounceEnergyLoss; }
+        physics.vx *= physics.friction; physics.vy *= physics.friction; physics.va *= physics.friction;
+        physics.x += physics.vx; physics.y += physics.vy; physics.angle += physics.va;
+
+        physics.vsx += (1 - physics.scaleX) * physics.spring;
+        physics.vsy += (1 - physics.scaleY) * physics.spring;
+        physics.vsx *= physics.damping;
+        physics.vsy *= physics.damping;
+        physics.scaleX += physics.vsx;
+        physics.scaleY += physics.vsy;
+
+        faceWrapper.style.transform = `translate(${physics.x}px, ${physics.y}px) rotate(${physics.angle}deg) scale(${physics.scaleX}, ${physics.scaleY})`;
+        
+        if (Math.abs(physics.vx) < 0.1 && Math.abs(physics.vy) < 0.1 && Math.abs(physics.va) < 0.1 && Math.abs(1 - physics.scaleX) < 0.01 && Math.abs(1 - physics.scaleY) < 0.01) {
+            physics.isRunning = false;
+        } else {
+            requestAnimationFrame(updatePhysics);
+        }
+    }
+
+    function switchCharacter(index) { if (index >= characters.length) return; currentCharacterIndex = index; const char = characters[index]; face.src = char.image; if (!Array.isArray(char.sound)) { characterSound.src = char.sound; } resetFaceState(); }
     function createImpactEffect(x, y) { const impact = document.createElement('img'); impact.src = impactImages[Math.floor(Math.random() * impactImages.length)]; impact.className = 'impact-effect'; impact.style.left = `${x}px`; impact.style.top = `${y}px`; attackContainer.appendChild(impact); impact.addEventListener('animationend', () => impact.remove()); }
     function sprayParticles() { florpSound.cloneNode(true).play(); const particleCount = 5; const baseAngle = Math.random() * 2 * Math.PI; const sprayArc = Math.PI / 3; for (let i = 0; i < particleCount; i++) { const particleEl = document.createElement('img'); particleEl.src = 'immediate.png'; particleEl.className = 'particle'; const angle = baseAngle + (Math.random() - 0.5) * sprayArc; const speed = 15 + Math.random() * 10; const particleObj = { el: particleEl, x: physics.x, y: physics.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, rotation: Math.random() * 360, rotationVelocity: (Math.random() - 0.5) * 20 }; activeParticles.push(particleObj); attackContainer.appendChild(particleEl); } }
-    function updateParticles() { for (let i = activeParticles.length - 1; i >= 0; i--) { const p = activeParticles[i]; p.vy += gravity; p.x += p.vx; p.y += p.vy; p.rotation += p.rotationVelocity; p.el.style.transform = `translate(calc(-50% + ${p.x}px), calc(-50% + ${p.y}px)) rotate(${p.rotation}deg)`; p.el.style.left = `${bounds.wWidth / 2}px`; p.el.style.top = `${bounds.wHeight / 2}px`; if (p.y > (bounds.wHeight / 2) + 100) { p.el.remove(); activeParticles.splice(i, 1); } } requestAnimationFrame(updateParticles); }
+    function updateParticles() { for (let i = activeParticles.length - 1; i >= 0; i--) { const p = activeParticles[i]; p.vy += gravity; p.x += p.vx; p.y += p.vy; p.rotation += p.rotationVelocity; p.el.style.transform = `translate(calc(-50% + ${p.x}px), calc(-50% + ${p.y}px)) rotate(${p.rotation}deg)`; p.el.style.left = `${bounds.wWidth / 2}px`; p.el.style.top = `${bounds.wHeight / 2}px`; if (p.y > (bounds.wHeight / 2) + 200) { p.el.remove(); activeParticles.splice(i, 1); } } requestAnimationFrame(updateParticles); }
 
     initialize();
 });
