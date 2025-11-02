@@ -4,97 +4,27 @@ body, html {
     background-color: #31353b;
     overflow: hidden;
     font-family: sans-serif;
-    /* NEW: Prevents text highlighting */
     user-select: none;
-    -webkit-user-select: none; /* Safari */
-    -ms-user-select: none; /* IE 10+ */
+    -webkit-user-select: none;
 }
 
-#credit-text {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 14px;
-    pointer-events: none;
-    z-index: 99;
-}
-
-#controls {
-    position: absolute;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 100;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-}
-
-#button-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-#instruction-text {
-    margin: 0;
-    padding: 0;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 14px;
-}
-
-#controls button, #controls a {
-    padding: 10px 20px;
-    font-size: 16px;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    text-decoration: none;
-    display: inline-block;
-}
-#controls button {
-    background-color: #4f545c;
-}
-#controls button:hover {
-    background-color: #686e78;
-}
-#suggest-button {
-    background-color: #c85050;
-}
-#suggest-button:hover {
-    background-color: #d16060;
-}
+#credit-text { position: absolute; top: 15px; left: 15px; color: rgba(255, 255, 255, 0.5); font-size: 14px; pointer-events: none; z-index: 99; }
+#controls { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+#button-bar { display: flex; align-items: center; gap: 10px; }
+#instruction-text { margin: 0; padding: 0; color: rgba(255, 255, 255, 0.7); font-size: 14px; }
+#controls button, #controls a { padding: 10px 20px; font-size: 16px; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.2s; text-decoration: none; display: inline-block; }
+#controls button { background-color: #4f545c; }
+#controls button:hover { background-color: #686e78; }
+#suggest-button { background-color: #c85050; }
+#suggest-button:hover { background-color: #d16060; }
 
 #attack-container { position: absolute; width: 100%; height: 100%; pointer-events: none; }
 #face-wrapper { position: relative; perspective: 800px; }
 #face-wrapper.returning { transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
-#face { 
-    cursor: pointer; 
-    width: 250px; 
-    height: 250px; 
-    border-radius: 50%; 
-    user-select: none;
-    /* NEW: Prevents dragging the image */
-    -webkit-user-drag: none;
-    pointer-events: all; /* Ensure the face itself is clickable */
-}
+#face { cursor: pointer; width: 250px; height: 250px; border-radius: 50%; user-select: none; -webkit-user-drag: none; pointer-events: all; }
 
-.attacker-guide {
-    position: absolute;
-    transform: translate(-50%, -50%);
-}
-.attacker {
-    position: absolute;
-    width: 150px;
-    height: auto;
-    opacity: 0;
-    transform: translate(-50%, -50%);
-    animation: slap-anim 0.3s ease-in-out forwards;
-}
+.attacker-guide { position: absolute; transform: translate(-50%, -50%); }
+.attacker { position: absolute; width: 150px; height: auto; opacity: 0; transform: translate(-50%, -50%); animation: slap-anim 0.3s ease-in-out forwards; }
 
 @keyframes slap-anim {
     0% { opacity: 0; transform: translate(350px, -50%) rotate(-60deg); }
@@ -104,16 +34,18 @@ body, html {
     100% { opacity: 0; transform: translate(50px, -50%) rotate(-25deg) skewX(30deg); }
 }
 
-/* NEW: Media Query for responsive buttons on mobile devices */
+/* MODIFIED: Particles are now bigger */
+.particle {
+    position: absolute;
+    width: 120px; /* 50% bigger than 80px */
+    height: auto;
+    pointer-events: none;
+    z-index: 101;
+    /* Animation is now handled by JavaScript */
+}
+
 @media (max-width: 600px) {
-    #controls button, #controls a {
-        padding: 8px 12px;
-        font-size: 14px;
-    }
-    #button-bar {
-        gap: 6px;
-    }
-    #instruction-text, #credit-text {
-        font-size: 12px;
-    }
+    #controls button, #controls a { padding: 8px 12px; font-size: 14px; }
+    #button-bar { gap: 6px; }
+    #instruction-text, #credit-text { font-size: 12px; }
 }
