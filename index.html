@@ -7,25 +7,29 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- NEW: Credit text in the top-left corner -->
+    <div id="credit-text">Made by jarlightsabers jarling</div>
+
     <div id="controls">
-        <button data-character="0">Face</button>
-        <button data-character="1">James</button>
-        <button data-character="2">Alex</button>
-        <button data-character="3">Jim</button>
-        <a href="https://jarlightsabers.straw.page" id="suggest-button" target="_blank">Suggest</a>
+        <div id="button-bar">
+            <button data-character="0">Face</button>
+            <button data-character="1">James</button>
+            <button data-character="2">Alex</button>
+            <button data-character="3">Jim</button>
+            <a href="https://jarlightsabers.straw.page" id="suggest-button" target="_blank">Suggest</a>
+        </div>
+        <!-- NEW: Instructional text below the buttons -->
+        <p id="instruction-text">Click anywhere to slap</p>
     </div>
 
     <div id="attack-container"></div>
 
     <div id="face-wrapper">
-        <!-- MODIFIED: SVG filter style has been removed -->
         <img src="face.png" id="face" alt="face">
     </div>
 
     <audio id="character-sound" preload="auto"></audio>
     <audio id="slap-sound" preload="auto" src="slap.mp3"></audio>
-
-    <!-- REMOVED: The entire SVG filter block is gone -->
 
     <script src="script.js"></script>
 </body>

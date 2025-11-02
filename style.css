@@ -5,7 +5,44 @@ body, html {
     overflow: hidden;
     font-family: sans-serif;
 }
-#controls { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; align-items: center; gap: 10px; }
+
+/* NEW: Styles for the credit text */
+#credit-text {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+    pointer-events: none; /* Allows clicks to pass through */
+    z-index: 99;
+}
+
+#controls {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    display: flex;
+    flex-direction: column; /* Stack button bar and text vertically */
+    align-items: center;
+    gap: 8px; /* Space between buttons and text */
+}
+
+#button-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* NEW: Styles for the instructional text */
+#instruction-text {
+    margin: 0;
+    padding: 0;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+}
+
 #controls button, #controls a {
     padding: 10px 20px;
     font-size: 16px;
@@ -29,6 +66,7 @@ body, html {
 #suggest-button:hover {
     background-color: #d16060;
 }
+
 #attack-container { position: absolute; width: 100%; height: 100%; pointer-events: none; }
 #face-wrapper { position: relative; perspective: 800px; }
 #face-wrapper.returning { transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
