@@ -4,16 +4,19 @@ body, html {
     background-color: #31353b;
     overflow: hidden;
     font-family: sans-serif;
+    /* NEW: Prevents text highlighting */
+    user-select: none;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10+ */
 }
 
-/* NEW: Styles for the credit text */
 #credit-text {
     position: absolute;
     top: 15px;
     left: 15px;
     color: rgba(255, 255, 255, 0.5);
     font-size: 14px;
-    pointer-events: none; /* Allows clicks to pass through */
+    pointer-events: none;
     z-index: 99;
 }
 
@@ -24,9 +27,9 @@ body, html {
     transform: translateX(-50%);
     z-index: 100;
     display: flex;
-    flex-direction: column; /* Stack button bar and text vertically */
+    flex-direction: column;
     align-items: center;
-    gap: 8px; /* Space between buttons and text */
+    gap: 8px;
 }
 
 #button-bar {
@@ -35,7 +38,6 @@ body, html {
     gap: 10px;
 }
 
-/* NEW: Styles for the instructional text */
 #instruction-text {
     margin: 0;
     padding: 0;
@@ -70,7 +72,16 @@ body, html {
 #attack-container { position: absolute; width: 100%; height: 100%; pointer-events: none; }
 #face-wrapper { position: relative; perspective: 800px; }
 #face-wrapper.returning { transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
-#face { cursor: pointer; width: 250px; height: 250px; border-radius: 50%; user-select: none; -webkit-user-drag: none; }
+#face { 
+    cursor: pointer; 
+    width: 250px; 
+    height: 250px; 
+    border-radius: 50%; 
+    user-select: none;
+    /* NEW: Prevents dragging the image */
+    -webkit-user-drag: none;
+    pointer-events: all; /* Ensure the face itself is clickable */
+}
 
 .attacker-guide {
     position: absolute;
@@ -86,23 +97,23 @@ body, html {
 }
 
 @keyframes slap-anim {
-    0% {
-        opacity: 0;
-        transform: translate(350px, -50%) rotate(-60deg);
+    0% { opacity: 0; transform: translate(350px, -50%) rotate(-60deg); }
+    30% { opacity: 1; transform: translate(300px, -50%) rotate(45deg); }
+    60% { transform: translate(0px, -50%) rotate(-20deg) skewX(30deg); }
+    80% { opacity: 1; transform: translate(50px, -50%) rotate(-25deg) skewX(30deg); }
+    100% { opacity: 0; transform: translate(50px, -50%) rotate(-25deg) skewX(30deg); }
+}
+
+/* NEW: Media Query for responsive buttons on mobile devices */
+@media (max-width: 600px) {
+    #controls button, #controls a {
+        padding: 8px 12px;
+        font-size: 14px;
     }
-    30% {
-        opacity: 1;
-        transform: translate(300px, -50%) rotate(45deg);
+    #button-bar {
+        gap: 6px;
     }
-    60% {
-        transform: translate(0px, -50%) rotate(-20deg) skewX(30deg);
-    }
-    80% {
-        opacity: 1;
-        transform: translate(50px, -50%) rotate(-25deg) skewX(30deg);
-    }
-    100% {
-        opacity: 0;
-        transform: translate(50px, -50%) rotate(-25deg) skewX(30deg);
+    #instruction-text, #credit-text {
+        font-size: 12px;
     }
 }
