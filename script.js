@@ -70,9 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
         attacker.addEventListener('animationend', () => guide.remove());
     }
 
-    // REWRITTEN: Function now creates 5 dynamic clouds at a 50ms interval
+    // MODIFIED: Function now creates 3 clouds with random variance
     function createGasEffect(x, y) {
-        const gasCount = 5;
+        const gasCount = 3;
         const interval = 50;
         const styleSheet = document.createElement('style');
         document.head.appendChild(styleSheet);
@@ -93,12 +93,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const endX = (Math.random() - 0.5) * 50;
                 const endY = (Math.random() - 0.5) * 50;
                 const duration = 0.8 + Math.random() * 0.4;
+                // NEW: Random final scale for size variance (1.0 = normal, 1.4 = 40% bigger)
+                const finalScale = 2.0 + (Math.random() * 1.4);
 
                 const animName = `gas_${Date.now()}_${i}`;
                 const keyframes = `
                     @keyframes ${animName} {
                         0% { opacity: 0.7; transform: translate(-50%, -50%) scale(0.5) rotate(${startRotation}deg); }
-                        100% { opacity: 0; transform: translate(calc(-50% + ${endX}px), calc(-50% + ${endY}px)) scale(2.5) rotate(${endRotation}deg); }
+                        100% { opacity: 0; transform: translate(calc(-50% + ${endX}px), calc(-50% + ${endY}px)) scale(${finalScale}) rotate(${endRotation}deg); }
                     }
                 `;
                 styleSheet.sheet.insertRule(keyframes, styleSheet.sheet.cssRules.length);

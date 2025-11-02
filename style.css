@@ -41,26 +41,14 @@ body, html {
     100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); }
 }
 
-/* NEW: Gas effect styles */
+/* MODIFIED: Base size is ~25% smaller */
 .gas-effect {
     position: absolute;
-    width: 30vmin;
-    max-width: 250px;
+    width: 22vmin;
+    max-width: 190px;
     height: auto;
-    z-index: 100; /* Behind other effects */
+    z-index: 100;
     pointer-events: none;
-    animation: gas-anim 1s ease-out forwards;
-}
-
-@keyframes gas-anim {
-    0% {
-        opacity: 0.7;
-        /* Scale is set by JS */
-    }
-    100% {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(2.5);
-    }
 }
 
 .particle { width: 15vmin; max-width: 120px; position: absolute; height: auto; pointer-events: none; z-index: 101; }
