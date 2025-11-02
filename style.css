@@ -4,11 +4,14 @@ body, html {
     background-color: #31353b;
     overflow: hidden;
     font-family: sans-serif;
+    /* --- SELECTION & HIGHLIGHT PREVENTION --- */
     user-select: none;
-    -webkit-user-select: none;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10+ */
+    /* NEW: Removes the blue tap highlight on mobile */
+    -webkit-tap-highlight-color: transparent;
 }
 
-/* MODIFIED: Credit text is now at the bottom */
 #credit-text {
     position: absolute;
     bottom: 15px;
@@ -56,13 +59,6 @@ body, html {
     #controls button, #controls a { padding: 8px 12px; font-size: 14px; }
     #button-bar { gap: 6px; }
     #instruction-text, #credit-text { font-size: 12px; }
-
-    /* NEW: Scale the face and hand down on mobile */
-    #face {
-        width: 180px;
-        height: 180px;
-    }
-    .attacker {
-        width: 110px;
-    }
+    #face { width: 180px; height: 180px; }
+    .attacker { width: 110px; }
 }

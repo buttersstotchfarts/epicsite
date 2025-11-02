@@ -47,7 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function triggerSlap() {
-        // MODIFIED: Ensure bounds are up-to-date for every slap
         updateBounds(); 
 
         clearTimeout(returnToCenterTimer);
