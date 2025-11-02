@@ -7,6 +7,8 @@ body, html {
     user-select: none;
     -webkit-user-select: none;
     -webkit-tap-highlight-color: transparent;
+    /* NEW: Reinforces zoom prevention on touch devices */
+    touch-action: manipulation;
 }
 
 #credit-text { position: absolute; bottom: 15px; left: 15px; color: rgba(255, 255, 255, 0.5); font-size: 14px; pointer-events: none; z-index: 99; }
@@ -41,7 +43,6 @@ body, html {
     100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); }
 }
 
-/* MODIFIED: Base size is ~25% smaller */
 .gas-effect {
     position: absolute;
     width: 22vmin;
