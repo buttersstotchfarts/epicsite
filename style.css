@@ -19,7 +19,15 @@ body, html {
 #suggest-button { background-color: #c85050; }
 #suggest-button:hover { background-color: #d16060; }
 
-#attack-container { position: absolute; width: 100%; height: 100%; pointer-events: none; }
+/* MODIFIED: Added overflow: hidden to clip off-screen animations */
+#attack-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+}
+
 #face-wrapper { position: relative; perspective: 800px; }
 #face-wrapper.returning { transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
 #face { width: 30vmin; height: 30vmin; max-width: 250px; max-height: 250px; cursor: pointer; border-radius: 50%; user-select: none; -webkit-user-drag: none; pointer-events: all; }
@@ -41,7 +49,6 @@ body, html {
     100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); }
 }
 
-/* MODIFIED: Base size is ~25% smaller */
 .gas-effect {
     position: absolute;
     width: 22vmin;
