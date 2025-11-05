@@ -19,7 +19,6 @@ body, html {
 #suggest-button { background-color: #c85050; }
 #suggest-button:hover { background-color: #d16060; }
 
-/* MODIFIED: Added overflow: hidden to clip off-screen animations */
 #attack-container {
     position: absolute;
     width: 100%;
