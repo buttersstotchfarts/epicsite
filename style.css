@@ -7,13 +7,40 @@ body, html {
     user-select: none;
     -webkit-user-select: none;
     -webkit-tap-highlight-color: transparent;
-    /* NEW: Disables double-tap-to-zoom on mobile browsers */
     touch-action: manipulation;
 }
 
+/* RESTORED: Correct styles for the counter box */
+#counter-box {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    background-color: #4f545c;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    z-index: 99;
+    pointer-events: none;
+}
+#counter-label {
+    font-weight: normal;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
 #credit-text { position: absolute; bottom: 15px; left: 15px; color: rgba(255, 255, 255, 0.5); font-size: 14px; pointer-events: none; z-index: 99; }
-#controls { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-#button-bar { display: flex; align-items: center; gap: 10px; }
+#controls { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; flex-direction: column; align-items: center; gap: 8px; width: 95%; }
+
+/* RESTORED: Correct responsive wrapping for buttons */
+#button-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
 #instruction-text { margin: 0; padding: 0; color: rgba(255, 255, 255, 0.7); font-size: 14px; }
 #controls button, #controls a { padding: 10px 20px; font-size: 16px; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.2s; text-decoration: none; display: inline-block; }
 #controls button { background-color: #4f545c; }
@@ -21,48 +48,24 @@ body, html {
 #suggest-button { background-color: #c85050; }
 #suggest-button:hover { background-color: #d16060; }
 
-#attack-container {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    overflow: hidden;
-}
-
+#attack-container { position: absolute; width: 100%; height: 100%; pointer-events: none; overflow: hidden; }
 #face-wrapper { position: relative; perspective: 800px; }
 #face-wrapper.returning { transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
 #face { width: 30vmin; height: 30vmin; max-width: 250px; max-height: 250px; cursor: pointer; border-radius: 50%; user-select: none; -webkit-user-drag: none; pointer-events: all; }
 
 .attacker-guide { position: absolute; transform: translate(-50%, -50%); z-index: 102; }
 .attacker { width: 20vmin; max-width: 150px; position: absolute; height: auto; opacity: 0; transform: translate(-50%, -50%); animation: slap-anim 0.3s ease-in-out forwards; }
-
-@keyframes slap-anim {
-    0% { opacity: 0; transform: translate(60vw, -50%) rotate(-60deg); }
-    30% { opacity: 1; transform: translate(50vw, -50%) rotate(45deg); }
-    60% { transform: translate(0px, -50%) rotate(-20deg) skewX(30deg); }
-    80% { opacity: 1; transform: translate(50px, -50%) rotate(-25deg) skewX(30deg); }
-    100% { opacity: 0; transform: translate(50px, -50%) rotate(-25deg) skewX(30deg); }
-}
+@keyframes slap-anim { 0% { opacity: 0; transform: translate(60vw, -50%) rotate(-60deg); } 30% { opacity: 1; transform: translate(50vw, -50%) rotate(45deg); } 60% { transform: translate(0px, -50%) rotate(-20deg) skewX(30deg); } 80% { opacity: 1; transform: translate(50px, -50%) rotate(-25deg) skewX(30deg); } 100% { opacity: 0; transform: translate(50px, -50%) rotate(-25deg) skewX(30deg); } }
 
 .impact-effect { width: 35vmin; max-width: 225px; position: absolute; height: auto; z-index: 101; transform: translate(-50%, -50%); animation: impact-anim 0.15s ease-out forwards; }
-@keyframes impact-anim {
-    0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); }
-}
+@keyframes impact-anim { 0% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); } }
 
-.gas-effect {
-    position: absolute;
-    width: 22vmin;
-    max-width: 190px;
-    height: auto;
-    z-index: 100;
-    pointer-events: none;
-}
-
+.gas-effect { position: absolute; width: 22vmin; max-width: 190px; height: auto; z-index: 100; pointer-events: none; }
 .particle { width: 15vmin; max-width: 120px; position: absolute; height: auto; pointer-events: none; z-index: 101; }
 
 @media (max-width: 600px) {
-    #controls button, #controls a { padding: 8px 12px; font-size: 14px; }
-    #button-bar { gap: 6px; }
-    #instruction-text, #credit-text { font-size: 12px; }
+    #controls button, #controls a { padding: 8px 10px; font-size: 13px; }
+    #button-bar { gap: 5px; }
+    #instruction-text, #credit-text, #counter-box { font-size: 12px; }
+    #counter-label { font-size: 10px; }
 }

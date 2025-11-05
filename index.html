@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="counter-box">
+        <span id="counter-label">GLOBAL SLAPS:</span>
+        <span id="counter-value">...</span>
+    </div>
+
     <div id="credit-text">Made by jarlightsabers jarling</div>
 
     <div id="controls">
@@ -29,10 +34,30 @@
 
     <audio id="character-sound" preload="auto"></audio>
     <audio id="slap-sound" preload="auto" src="slap.mp3"></audio>
-    <!-- NEW: Second slap sound for James Gunn -->
     <audio id="smack2-sound" preload="auto" src="smack2.mp3"></audio>
     <audio id="florp-sound" preload="auto" src="florp.mp3"></audio>
     <audio id="gunn-sound" preload="auto" src="justone.mp3"></audio>
+
+    <!-- Firebase library scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+    <script>
+      // CORRECTED: Your specific Firebase configuration is now correctly placed here.
+      const firebaseConfig = {
+        apiKey: "AIzaSyA4HZ6MXS1hu2tOf28fOl9ry8clHCGegNw",
+        authDomain: "jarlightsabers.firebaseapp.com",
+        databaseURL: "https://jarlightsabers-default-rtdb.firebaseio.com",
+        projectId: "jarlightsabers",
+        storageBucket: "jarlightsabers.appspot.com",
+        messagingSenderId: "528326402811",
+        appId: "1:528326402811:web:272049397275821343c65e",
+        measurementId: "G-S9RG5D97XW"
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+    </script>
 
     <script src="script.js"></script>
 </body>
