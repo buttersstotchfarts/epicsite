@@ -7,6 +7,8 @@ body, html {
     user-select: none;
     -webkit-user-select: none;
     -webkit-tap-highlight-color: transparent;
+    /* NEW: Disables double-tap-to-zoom on mobile browsers */
+    touch-action: manipulation;
 }
 
 #credit-text { position: absolute; bottom: 15px; left: 15px; color: rgba(255, 255, 255, 0.5); font-size: 14px; pointer-events: none; z-index: 99; }
