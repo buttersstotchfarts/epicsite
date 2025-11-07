@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>A Secret Page</title>
+    <link rel="stylesheet" href="hidden.css">
+</head>
+<body>
+    <!-- REWRITTEN: New, foolproof vignette system -->
+    <div id="vignette-container">
+        <div class="vignette-border top"></div>
+        <div class="vignette-border bottom"></div>
+        <div class="vignette-border left"></div>
+        <div class="vignette-border right"></div>
+    </div>
+
+    <div id="content-wrapper">
+        <div id="prompt-container">
+            <p id="prompt-text" class="green">Knock on the door to get his attention</p>
+        </div>
+
+        <div id="door-container">
+            <img src="door.png" id="door" alt="A door">
+        </div>
+    </div>
+
+    <audio id="knock-sound" preload="auto" src="knock.mp3"></audio>
+    <audio id="closer-sound" preload="auto" src="closer.mp3"></audio>
+    <audio id="dooropen-sound" preload="auto" src="dooropen.mp3"></audio>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const door = document.getElementById('door');
+            const promptText = document.getElementById('prompt-text');
+            const promptContainer = document.getElementById('prompt-container');
+            // MODIFIED: Variable now points to the new container
+            const vignetteContainer = document.getElementById('vignette-container');
+            const knockSound = document.getElementById('knock-sound');
+            const closerSound = document.getElementById('closer-sound');
+            const doorOpenSound = document.getElementById('dooropen-sound');
+            const doorContainer = document.getElementById('door-container');
+
+            let knockCount = 0;
+            let stage = 0;
+            let isClickable = true;
+            let currentFontSize = 3;
+
+            door.addEventListener('click', (event) => {
+                if (!isClickable) return;
+
+                if (stage === 4) {
+                    isClickable = false;
+                    doorOpenSound.play();
+                    door.src = 'dooropen.png';
+                    door.classList.add('door-open'); 
+                    setTimeout(() => {
+                        window.location.href = 'him.html';
+                    }, 800);
+                    return;
+                }
+
+                knockCount++;
+                knockSound.currentTime = 0;
+                knockSound.cloneNode(true).play();
+                
+                createKnockHand(event);
+
+                if (stage === 0 && knockCount >= 10) {
+                    stage = 1;
+                    updatePrompt("He hears you. Keep knocking", "yellow", "500");
+                    vignetteContainer.classList.add('vignette-stage-1');
+                } 
+                else if (stage === 1 && knockCount >= 30) {
+                    stage = 2;
+                    updatePrompt("He's almost here.", "red", "700");
+                    vignetteContainer.classList.add('vignette-stage-2');
+                }
+                else if (stage === 2 && knockCount >= 60) {
+                    stage = 3;
+                    isClickable = false;
+                    promptContainer.style.opacity = '0';
+                    vignetteContainer.classList.add('vignette-stage-3');
+                    
+                    setTimeout(() => {
+                        door.classList.add('rumbling');
+                        setTimeout(() => {
+                            door.classList.remove('rumbling');
+                            isClickable = true;
+                            stage = 4;
+                        }, 800);
+                    }, 500);
+                }
+            });
+
+            function createKnockHand(e) { const hand = document.createElement('img'); hand.src = 'knockhand.png'; hand.className = 'knock-hand'; const rect = doorContainer.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; hand.style.left = `${(x / rect.width) * 100}%`; hand.style.top = `${(y / rect.height) * 100}%`; doorContainer.appendChild(hand); hand.addEventListener('animationend', () => hand.remove()); }
+
+            function updatePrompt(newText, newClass, newWeight) {
+                closerSound.cloneNode(true).play();
+                promptContainer.style.opacity = '0';
+                
+                setTimeout(() => {
+                    currentFontSize *= 1.5;
+                    promptText.textContent = newText;
+                    promptText.className = newClass;
+                    promptText.style.fontSize = `${currentFontSize}vmin`;
+                    promptText.style.fontWeight = newWeight;
+                    promptContainer.style.opacity = '1';
+                }, 400);
+            }
+        });
+    </script>
+</body>
+</html>

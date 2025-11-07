@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- ELEMENT REFERENCES ---
     const attackContainer = document.getElementById('attack-container');
     const faceWrapper = document.getElementById('face-wrapper');
     const face = document.getElementById('face');
@@ -11,8 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const controlButtons = document.querySelectorAll('#controls button');
     const suggestButton = document.getElementById('suggest-button');
     const counterValue = document.getElementById('counter-value');
+    const buttonBar = document.getElementById('button-bar');
+    const goodbyeButton = document.getElementById('goodbye-button');
 
-    // --- FIREBASE REFERENCES ---
     const db = firebase.database();
     const smackCountRef = db.ref('/smackCount');
 
@@ -25,6 +25,10 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
     let currentCharacterIndex = 0;
     
+    let localSlapCount = 0;
+    let goodbyeButtonShown = false;
+    let alexSpeechBubble = null;
+
     const impactImages = ['impact1.png', 'impact2.png', 'impact3.png', 'impact4.png'];
     let returnToCenterTimer;
     let bounds = {};
@@ -45,7 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         smackCountRef.on('value', (snapshot) => {
             const count = snapshot.val() || 0;
-            counterValue.textContent = count.toLocaleString();
+            if (counterValue) {
+                counterValue.textContent = count.toLocaleString();
+            }
         });
     }
     
@@ -67,8 +73,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function showGoodbyeButton() {
+        buttonBar.classList.add('hidden');
+        goodbyeButton.classList.remove('hidden');
+        goodbyeButtonShown = true;
+    }
+
     function executeSlap() {
         smackCountRef.transaction((currentCount) => (currentCount || 0) + 1);
+        
+        localSlapCount++;
+        if (!goodbyeButtonShown && localSlapCount >= 100) {
+            showGoodbyeButton();
+        }
+
+        if (currentCharacterIndex === 2 && localSlapCount === 1 && !alexSpeechBubble) {
+            createAlexSpeechBubble();
+        }
 
         const guide = document.createElement('div'); guide.className = 'attacker-guide';
         const attacker = document.createElement('img'); attacker.className = 'attacker'; attacker.src = 'hand.png';
@@ -115,14 +136,59 @@ document.addEventListener('DOMContentLoaded', () => {
         attacker.addEventListener('animationend', () => guide.remove());
     }
 
+    function createAlexSpeechBubble() {
+        alexSpeechBubble = document.createElement('div');
+        alexSpeechBubble.className = 'speech-bubble';
+        alexSpeechBubble.textContent = "Please! Don't slap me 100 times! He might hear!";
+        faceWrapper.appendChild(alexSpeechBubble);
+        setTimeout(() => {
+            if (alexSpeechBubble) {
+                alexSpeechBubble.remove();
+                alexSpeechBubble = null;
+            }
+        }, 10000);
+    }
+
+    function switchCharacter(index) {
+        if (index >= characters.length) return;
+        currentCharacterIndex = index;
+        const char = characters[index];
+        face.src = char.image;
+        if (!Array.isArray(char.sound)) { characterSound.src = char.sound; }
+        
+        localSlapCount = 0;
+        goodbyeButtonShown = false;
+        buttonBar.classList.remove('hidden');
+        goodbyeButton.classList.add('hidden');
+        
+        if (alexSpeechBubble) {
+            alexSpeechBubble.remove();
+            alexSpeechBubble = null;
+        }
+
+        hardResetFaceState();
+    }
+
+    function hardResetFaceState() {
+        isSlapLocked = false;
+        gunnSound.pause();
+        if (alexSpeechBubble) {
+            alexSpeechBubble.remove();
+            alexSpeechBubble = null;
+        }
+        physics.isRunning = false;
+        faceWrapper.classList.remove('returning');
+        clearTimeout(returnToCenterTimer);
+        Object.assign(physics, { x: 0, y: 0, vx: 0, vy: 0, angle: 0, va: 0, scaleX: 1, scaleY: 1, vsx: 0, vsy: 0 });
+        faceWrapper.style.transform = 'translate(0, 0) rotate(0) scale(1,1)';
+    }
+
     function createGasEffect(x, y) { const gasCount = 3; const interval = 50; const styleSheet = document.createElement('style'); document.head.appendChild(styleSheet); for (let i = 0; i < gasCount; i++) { setTimeout(() => { const gas = document.createElement('img'); gas.src = 'fart.png'; gas.className = 'gas-effect'; const offsetX = (Math.random() - 0.5) * (bounds.fWidth * 0.3); const offsetY = (Math.random() - 0.5) * (bounds.fHeight * 0.3); gas.style.left = `${x + offsetX}px`; gas.style.top = `${y + offsetY}px`; const startRotation = Math.random() * 360; const endRotation = startRotation + (Math.random() - 0.5) * 180; const endX = (Math.random() - 0.5) * 50; const endY = (Math.random() - 0.5) * 50; const duration = 0.8 + Math.random() * 0.4; const finalScale = 2.0 + (Math.random() * 1.4); const animName = `gas_${Date.now()}_${i}`; const keyframes = ` @keyframes ${animName} { 0% { opacity: 0.7; transform: translate(-50%, -50%) scale(0.5) rotate(${startRotation}deg); } 100% { opacity: 0; transform: translate(calc(-50% + ${endX}px), calc(-50% + ${endY}px)) scale(${finalScale}) rotate(${endRotation}deg); } } `; styleSheet.sheet.insertRule(keyframes, styleSheet.sheet.cssRules.length); gas.style.animation = `${animName} ${duration}s ease-out forwards`; attackContainer.appendChild(gas); gas.addEventListener('animationend', () => gas.remove()); }, i * interval); } setTimeout(() => styleSheet.remove(), 1200 + (gasCount * interval)); }
     function createImpactEffect(x, y) { const impact = document.createElement('img'); impact.src = impactImages[Math.floor(Math.random() * impactImages.length)]; impact.className = 'impact-effect'; impact.style.left = `${x}px`; impact.style.top = `${y}px`; attackContainer.appendChild(impact); impact.addEventListener('animationend', () => impact.remove()); }
     function sprayParticles() { florpSound.cloneNode(true).play(); const particleCount = 5; const baseAngle = Math.random() * 2 * Math.PI; const sprayArc = Math.PI / 3; for (let i = 0; i < particleCount; i++) { const particleEl = document.createElement('img'); particleEl.src = 'immediate.png'; particleEl.className = 'particle'; const angle = baseAngle + (Math.random() - 0.5) * sprayArc; const speed = 15 + Math.random() * 10; const particleObj = { el: particleEl, x: physics.x, y: physics.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, rotation: Math.random() * 360, rotationVelocity: (Math.random() - 0.5) * 20 }; activeParticles.push(particleObj); attackContainer.appendChild(particleEl); } }
     function updateParticles() { for (let i = activeParticles.length - 1; i >= 0; i--) { const p = activeParticles[i]; p.vy += gravity; p.x += p.vx; p.y += p.vy; p.rotation += p.rotationVelocity; p.el.style.transform = `translate(calc(-50% + ${p.x}px), calc(-50% + ${p.y}px)) rotate(${p.rotation}deg)`; p.el.style.left = `${bounds.wWidth / 2}px`; p.el.style.top = `${bounds.wHeight / 2}px`; if (p.y > (bounds.wHeight / 2) + 200) { p.el.remove(); activeParticles.splice(i, 1); } } requestAnimationFrame(updateParticles); }
     function updateBounds() { bounds = { wWidth: window.innerWidth, wHeight: window.innerHeight, fWidth: faceWrapper.offsetWidth, fHeight: faceWrapper.offsetHeight }; }
-    function hardResetFaceState() { isSlapLocked = false; gunnSound.pause(); physics.isRunning = false; faceWrapper.classList.remove('returning'); clearTimeout(returnToCenterTimer); Object.assign(physics, { x: 0, y: 0, vx: 0, vy: 0, angle: 0, va: 0, scaleX: 1, scaleY: 1, vsx: 0, vsy: 0 }); faceWrapper.style.transform = 'translate(0, 0) rotate(0) scale(1,1)'; }
     function smoothReturnToCenter() { physics.isRunning = false; faceWrapper.classList.add('returning'); faceWrapper.style.transform = 'translate(0, 0) rotate(0) scale(1,1)'; setTimeout(() => { faceWrapper.classList.remove('returning'); Object.assign(physics, { x: 0, y: 0, vx: 0, vy: 0, angle: 0, va: 0, scaleX: 1, scaleY: 1, vsx: 0, vsy: 0 }); }, 500); }
-    function switchCharacter(index) { if (index >= characters.length) return; currentCharacterIndex = index; const char = characters[index]; face.src = char.image; if (!Array.isArray(char.sound)) { characterSound.src = char.sound; } hardResetFaceState(); }
     function applyForce(forceX, forceY) { physics.vx += forceX * physics.impactMultiplier; physics.vy += forceY * physics.impactMultiplier; physics.va += (Math.random() - 0.5) * 8; physics.vsx -= 0.3; physics.vsy += 0.3; if (!physics.isRunning) { physics.isRunning = true; updatePhysics(); } }
     function updatePhysics() { if (!physics.isRunning) return; const outOfBoundsX = Math.abs(physics.x) > (bounds.wWidth / 2 + bounds.fWidth); const outOfBoundsY = Math.abs(physics.y) > (bounds.wHeight / 2 + bounds.fHeight); if (outOfBoundsX || outOfBoundsY) { hardResetFaceState(); return; } const nextX = physics.x + physics.vx; const nextY = physics.y + physics.vy; const halfW = bounds.fWidth / 2; const halfH = bounds.fHeight / 2; if ((nextX + halfW > bounds.wWidth / 2 && physics.vx > 0) || (nextX - halfW < -bounds.wWidth / 2 && physics.vx < 0)) { physics.vx *= -physics.bounceEnergyLoss; } if ((nextY + halfH > bounds.wHeight / 2 && physics.vy > 0) || (nextY - halfH < -bounds.wHeight / 2 && physics.vy < 0)) { physics.vy *= -physics.bounceEnergyLoss; } physics.vx *= physics.friction; physics.vy *= physics.friction; physics.va *= physics.friction; physics.x += physics.vx; physics.y += physics.vy; physics.angle += physics.va; physics.vsx += (1 - physics.scaleX) * physics.spring; physics.vsy += (1 - physics.scaleY) * physics.spring; physics.vsx *= physics.damping; physics.vsy *= physics.damping; physics.scaleX += physics.vsx; physics.scaleY += physics.vsy; faceWrapper.style.transform = `translate(${physics.x}px, ${physics.y}px) rotate(${physics.angle}deg) scale(${physics.scaleX}, ${physics.scaleY})`; if (Math.abs(physics.vx) < 0.1 && Math.abs(physics.vy) < 0.1 && Math.abs(physics.va) < 0.1 && Math.abs(1 - physics.scaleX) < 0.01 && Math.abs(1 - physics.scaleY) < 0.01) { physics.isRunning = false; } else { requestAnimationFrame(updatePhysics); } }
 

@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- RESTORED: The global slap counter box -->
     <div id="counter-box">
         <span id="counter-label">GLOBAL SLAPS:</span>
         <span id="counter-value">...</span>
@@ -23,6 +24,7 @@
             <button data-character="4">James Gunn</button>
             <a href="https://jarlightsabers.straw.page" id="suggest-button" target="_blank">Suggest</a>
         </div>
+        <a href="hidden.html" id="goodbye-button" class="hidden">One last goodbye</a>
         <p id="instruction-text">Click anywhere to slap</p>
     </div>
 
@@ -38,12 +40,11 @@
     <audio id="florp-sound" preload="auto" src="florp.mp3"></audio>
     <audio id="gunn-sound" preload="auto" src="justone.mp3"></audio>
 
-    <!-- Firebase library scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
     <script>
-      // CORRECTED: Your specific Firebase configuration is now correctly placed here.
+      // Your Firebase config
       const firebaseConfig = {
         apiKey: "AIzaSyA4HZ6MXS1hu2tOf28fOl9ry8clHCGegNw",
         authDomain: "jarlightsabers.firebaseapp.com",
@@ -54,8 +55,6 @@
         appId: "1:528326402811:web:272049397275821343c65e",
         measurementId: "G-S9RG5D97XW"
       };
-
-      // Initialize Firebase
       firebase.initializeApp(firebaseConfig);
     </script>
 

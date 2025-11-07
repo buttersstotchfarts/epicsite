@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>He is here.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="him.css">
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="scene-background"></div>
+
+        <div id="ui-container">
+            <!-- MODIFIED: "Day 01" has been removed -->
+            <div id="datetime-display">
+                <span class="time">14:32</span>
+            </div>
+            <!-- MODIFIED: Text has been changed -->
+            <div id="location-display">Pawny's Corner</div>
+
+            <div id="character-container">
+                <img src="pawny.png" id="character-sprite" alt="Pawny">
+            </div>
+
+            <div id="dialogue-container">
+                <div id="nameplate">
+                    <span id="speaker-name"></span>
+                </div>
+                <div id="content-area">
+                    <p id="dialogue-text"></p>
+                    <div id="choices-area"></div>
+                    <div id="input-area" class="hidden">
+                        <input type="text" id="name-input" placeholder="What's your name?">
+                        <button id="name-submit-button">Confirm</button>
+                    </div>
+                </div>
+                <div id="continue-prompt">♥</div>
+            </div>
+
+            <!-- REMOVED: The action icons are gone -->
+        </div>
+    </div>
+
+    <audio id="select-sound" preload="auto" src="select.mp3"></audio>
+    <audio id="button-select-sound" preload="auto" src="buttonselect.mp3"></audio>
+    <audio id="bg-music" preload="auto" src="dating.mp3" loop autoplay muted></audio>
+
+    <script src="him.js"></script>
+
+</body>
+</html>
