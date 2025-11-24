@@ -9,9 +9,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const gunnSound = document.getElementById('gunn-sound');
     const controlButtons = document.querySelectorAll('#controls button');
     const suggestButton = document.getElementById('suggest-button');
+    const counterBox = document.getElementById('counter-box');
     const counterValue = document.getElementById('counter-value');
     const buttonBar = document.getElementById('button-bar');
     const goodbyeButton = document.getElementById('goodbye-button');
+    const updateText = document.getElementById('update-text');
+    const amplifyButton = document.getElementById('amplify-button');
     
     // New Elements
     const abuseContainer = document.getElementById('abuse-container');
@@ -33,9 +36,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let localSlapCount = 0;
     let billySlapCount = 0;
-    let abuseGestureCount = 0; // Tracks how many middle fingers are active
+    let abuseGestureCount = 0;
+    let currentGlobalCount = 0;
     let goodbyeButtonShown = false;
     let activeSpeechBubble = null;
+    let counterMessageTimer = null; 
 
     const impactImages = ['impact1.png', 'impact2.png', 'impact3.png', 'impact4.png'];
     let returnToCenterTimer;
@@ -45,6 +50,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const gravity = 0.5;
     let isSlapLocked = false;
 
+    // Amplified Slap Logic
+    let isAmplified = false;
+
+    // Letter Explosion Physics
+    let explodedLetters = [];
+    let explosionLoopId = null;
+    let isTextReturning = false;
+    let textRestorationTimeout = null;
+
     function initialize() {
         updateBounds();
         window.addEventListener('resize', updateBounds);
@@ -53,7 +67,21 @@ document.addEventListener('DOMContentLoaded', () => {
         face.addEventListener('click', (event) => { event.stopPropagation(); triggerSlap(); });
         document.body.addEventListener('click', triggerSlap);
         
-        // Abuse Button Listener
+        counterBox.addEventListener('click', (event) => {
+            event.stopPropagation();
+            checkGlobalSlaps();
+        });
+
+        updateText.addEventListener('click', (event) => {
+            event.stopPropagation();
+            explodeText(event);
+        });
+        
+        amplifyButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            toggleAmplify();
+        });
+
         abuseButton.addEventListener('click', (event) => {
             event.stopPropagation();
             triggerGunnAbuse();
@@ -64,41 +92,189 @@ document.addEventListener('DOMContentLoaded', () => {
         
         smackCountRef.on('value', (snapshot) => {
             const count = snapshot.val() || 0;
-            if (counterValue) {
+            currentGlobalCount = count;
+            if (counterValue && !counterMessageTimer) { 
                 counterValue.textContent = count.toLocaleString();
             }
         });
     }
+
+    function toggleAmplify() {
+        isAmplified = !isAmplified;
+        if (isAmplified) {
+            amplifyButton.classList.add('active');
+            // Increase Bounciness
+            physics.bounceEnergyLoss = 0.99; // Almost perfect bounce
+            physics.friction = 0.99; // Reduced air friction
+        } else {
+            amplifyButton.classList.remove('active');
+            // Reset Bounciness
+            physics.bounceEnergyLoss = 0.8;
+            physics.friction = 0.96;
+        }
+    }
+
+    function checkGlobalSlaps() {
+        if (counterMessageTimer) clearTimeout(counterMessageTimer);
+
+        const target = 1000000;
+        let message = "";
+
+        if (currentGlobalCount < target) {
+            const remaining = target - currentGlobalCount;
+            message = `${remaining.toLocaleString()} slaps remaining until 1,000,000`;
+        } else {
+            message = "The slap counter is sufficient, prepare...";
+        }
+
+        counterValue.textContent = message;
+        counterValue.style.fontSize = "12px"; 
+
+        counterMessageTimer = setTimeout(() => {
+            counterValue.textContent = currentGlobalCount.toLocaleString();
+            counterValue.style.fontSize = ""; 
+            counterMessageTimer = null;
+        }, 4000);
+    }
+
+    function explodeText() {
+        if (updateText.style.opacity === '0' && !isTextReturning) {
+            return;
+        }
+
+        if (textRestorationTimeout) clearTimeout(textRestorationTimeout);
+        isTextReturning = false;
+
+        const text = updateText.textContent;
+        const rect = updateText.getBoundingClientRect();
+        
+        updateText.style.opacity = '0';
+        updateText.style.pointerEvents = 'none';
+        amplifyButton.classList.remove('hidden');
+
+        explodedLetters.forEach(p => p.el.remove());
+        explodedLetters = [];
+
+        for (let i = 0; i < text.length; i++) {
+            const letter = text[i];
+            if (letter === " ") continue; 
+
+            const span = document.createElement('span');
+            span.textContent = letter;
+            span.className = 'exploded-letter';
+            const xOffset = i * 7; 
+            
+            const startX = rect.left + xOffset;
+            const startY = rect.top;
+
+            span.style.left = `${startX}px`;
+            span.style.top = `${startY}px`;
+            
+            document.body.appendChild(span);
+
+            explodedLetters.push({
+                el: span,
+                startX: startX,
+                startY: startY,
+                x: startX,
+                y: startY,
+                vx: (Math.random() - 0.5) * 15, 
+                vy: (Math.random() - 1.0) * 15, 
+                rot: 0,
+                vRot: (Math.random() - 0.5) * 20
+            });
+        }
+
+        if (!explosionLoopId) {
+            updateExplosion();
+        }
+
+        textRestorationTimeout = setTimeout(() => {
+            isTextReturning = true;
+        }, 5000);
+    }
+
+    function updateExplosion() {
+        if (explodedLetters.length === 0) {
+            explosionLoopId = null;
+            return;
+        }
+
+        let allHome = true;
+
+        for (let i = explodedLetters.length - 1; i >= 0; i--) {
+            let p = explodedLetters[i];
+            
+            if (isTextReturning) {
+                const dx = p.startX - p.x;
+                const dy = p.startY - p.y;
+                
+                p.x += dx * 0.1;
+                p.y += dy * 0.1;
+                p.rot *= 0.8; 
+                
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist > 1 || Math.abs(p.rot) > 1) {
+                    allHome = false;
+                }
+            } else {
+                allHome = false; 
+                p.vy += 0.8; 
+                p.vx *= 0.99; 
+                
+                p.x += p.vx;
+                p.y += p.vy;
+                p.rot += p.vRot;
+
+                const bWidth = window.innerWidth;
+                const bHeight = window.innerHeight;
+
+                if (p.x < 0) { p.x = 0; p.vx *= -0.8; }
+                if (p.x > bWidth - 10) { p.x = bWidth - 10; p.vx *= -0.8; }
+                
+                if (p.y > bHeight - 20) {
+                    p.y = bHeight - 20;
+                    p.vy *= -0.6; 
+                    p.vx *= 0.8; 
+                    if (Math.abs(p.vy) < 1) p.vy = 0;
+                }
+            }
+
+            p.el.style.transform = `translate(${p.x - parseFloat(p.el.style.left)}px, ${p.y - parseFloat(p.el.style.top)}px) rotate(${p.rot}deg)`;
+        }
+
+        if (isTextReturning && allHome) {
+            explodedLetters.forEach(p => p.el.remove());
+            explodedLetters = [];
+            
+            updateText.style.opacity = '1';
+            updateText.style.pointerEvents = 'all';
+            amplifyButton.classList.add('hidden');
+            
+            explosionLoopId = null;
+        } else {
+            explosionLoopId = requestAnimationFrame(updateExplosion);
+        }
+    }
     
     function triggerGunnAbuse() {
-        // Increment counter
         abuseGestureCount++;
-        
-        // Set sad face immediately
         face.src = 'jamesgunnsad.png';
-
-        // Play Random Sound
         const soundFile = gunnAbuseSounds[Math.floor(Math.random() * gunnAbuseSounds.length)];
         new Audio(soundFile).play();
 
-        // Spawn Middle Finger
         const finger = document.createElement('img');
         finger.src = 'middlefinger.png';
         finger.className = 'finger-effect';
-        
         const randomOffset = (Math.random() - 0.5) * 50; 
         finger.style.left = `calc(50% + ${randomOffset}px)`;
-        
         document.body.appendChild(finger); 
         
-        // Handle cleanup and reverting face
         finger.addEventListener('animationend', () => {
             finger.remove();
             abuseGestureCount--;
-            
-            // Only revert if no other fingers are active AND we are still James Gunn
             if (abuseGestureCount <= 0 && currentCharacterIndex === 4) {
-                abuseGestureCount = 0; // Safety reset
+                abuseGestureCount = 0;
                 face.src = 'jamesgunn.png';
             }
         });
@@ -130,13 +306,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function executeSlap() {
-        // BILLY SPECIAL LOGIC
         if (currentCharacterIndex === 5) {
             performBillyDeflection();
             return;
         }
 
-        // STANDARD LOGIC
         smackCountRef.transaction((currentCount) => (currentCount || 0) + 1);
         
         localSlapCount++;
@@ -149,7 +323,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const guide = document.createElement('div'); guide.className = 'attacker-guide';
-        const attacker = document.createElement('img'); attacker.className = 'attacker'; attacker.src = 'hand.png';
+        const attacker = document.createElement('img'); attacker.className = 'attacker'; 
+        attacker.src = 'hand.png';
+
+        if (isAmplified) {
+            attacker.classList.add('amplified');
+        }
 
         const targetX = (bounds.wWidth / 2) + physics.x;
         const targetY = (bounds.wHeight / 2) + physics.y;
@@ -179,7 +358,16 @@ document.addEventListener('DOMContentLoaded', () => {
             createImpactEffect(targetX, targetY);
             const faceAngleRad = physics.angle * Math.PI / 180;
             const finalImpactVector = { x: Math.cos(faceAngleRad) * impactVector.x - Math.sin(faceAngleRad) * impactVector.y, y: Math.sin(faceAngleRad) * impactVector.x + Math.cos(faceAngleRad) * impactVector.y };
-            applyForce(finalImpactVector.x, finalImpactVector.y);
+            
+            let forceX = finalImpactVector.x;
+            let forceY = finalImpactVector.y;
+            
+            if (isAmplified) {
+                forceX *= 4;
+                forceY *= 4;
+            }
+
+            applyForce(forceX, forceY);
 
             if ((currentCharacterIndex === 0 && Math.random() < 0.1) || (currentCharacterIndex === 3 && Math.random() < 0.2)) {
                 sprayParticles();
@@ -193,7 +381,6 @@ document.addEventListener('DOMContentLoaded', () => {
         attacker.addEventListener('animationend', () => guide.remove());
     }
 
-    // --- BILLY DEFLECTION LOGIC ---
     function performBillyDeflection() {
         smackCountRef.transaction((currentCount) => (currentCount || 0) - 1);
         billySlapCount++;
@@ -232,13 +419,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setTimeout(() => {
             slapSound.cloneNode(true).play();
-
-            // Rumble effect
             faceWrapper.classList.remove('rumble-effect');
             void faceWrapper.offsetWidth;
             faceWrapper.classList.add('rumble-effect');
 
-            // Show Red -1
             const minusOne = document.createElement('div');
             minusOne.className = 'damage-text';
             minusOne.textContent = "-1";
@@ -278,13 +462,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         localSlapCount = 0;
         billySlapCount = 0;
-        abuseGestureCount = 0; // Reset active gestures
+        abuseGestureCount = 0; 
         goodbyeButtonShown = false;
         buttonBar.classList.remove('hidden');
         goodbyeButton.classList.add('hidden');
         
-        // Abuse Button visibility logic
-        if (index === 4) { // James Gunn
+        if (index === 4) {
             abuseContainer.classList.remove('hidden');
         } else {
             abuseContainer.classList.add('hidden');
@@ -310,6 +493,16 @@ document.addEventListener('DOMContentLoaded', () => {
         faceWrapper.classList.remove('rumble-effect');
         clearTimeout(returnToCenterTimer);
         Object.assign(physics, { x: 0, y: 0, vx: 0, vy: 0, angle: 0, va: 0, scaleX: 1, scaleY: 1, vsx: 0, vsy: 0 });
+        
+        // Ensure amplified settings stick after a reset
+        if (isAmplified) {
+            physics.bounceEnergyLoss = 0.99;
+            physics.friction = 0.99;
+        } else {
+            physics.bounceEnergyLoss = 0.8;
+            physics.friction = 0.96;
+        }
+
         faceWrapper.style.transform = 'translate(0, 0) rotate(0) scale(1,1)';
     }
 
