@@ -12,6 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const counterValue = document.getElementById('counter-value');
     const buttonBar = document.getElementById('button-bar');
     const goodbyeButton = document.getElementById('goodbye-button');
+    
+    // New Elements
+    const abuseContainer = document.getElementById('abuse-container');
+    const abuseButton = document.getElementById('abuse-button');
+    const gunnAbuseSounds = ['gunn1.mp3', 'gunn2.mp3', 'gunn3.mp3'];
 
     const db = firebase.database();
     const smackCountRef = db.ref('/smackCount');
@@ -21,13 +26,16 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "James", image: "james.png", sound: "james.mp3" },
         { name: "Alex", image: "alex.png", sound: ['jump.mp3', 'rump.mp3', 'pump.mp3', 'stump.mp3'] },
         { name: "Jim", image: "jim.png", sound: "jim.mp3" },
-        { name: "James Gunn", image: "jamesgunn.png", sound: "justone.mp3" }
+        { name: "James Gunn", image: "jamesgunn.png", sound: "justone.mp3" },
+        { name: "Billy", image: "billy.png", sound: "slap.mp3" }
     ];
     let currentCharacterIndex = 0;
     
     let localSlapCount = 0;
+    let billySlapCount = 0;
+    let abuseGestureCount = 0; // Tracks how many middle fingers are active
     let goodbyeButtonShown = false;
-    let alexSpeechBubble = null;
+    let activeSpeechBubble = null;
 
     const impactImages = ['impact1.png', 'impact2.png', 'impact3.png', 'impact4.png'];
     let returnToCenterTimer;
@@ -44,6 +52,13 @@ document.addEventListener('DOMContentLoaded', () => {
         suggestButton.addEventListener('click', (event) => event.stopPropagation());
         face.addEventListener('click', (event) => { event.stopPropagation(); triggerSlap(); });
         document.body.addEventListener('click', triggerSlap);
+        
+        // Abuse Button Listener
+        abuseButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            triggerGunnAbuse();
+        });
+
         switchCharacter(0);
         requestAnimationFrame(updateParticles);
         
@@ -55,11 +70,46 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    function triggerGunnAbuse() {
+        // Increment counter
+        abuseGestureCount++;
+        
+        // Set sad face immediately
+        face.src = 'jamesgunnsad.png';
+
+        // Play Random Sound
+        const soundFile = gunnAbuseSounds[Math.floor(Math.random() * gunnAbuseSounds.length)];
+        new Audio(soundFile).play();
+
+        // Spawn Middle Finger
+        const finger = document.createElement('img');
+        finger.src = 'middlefinger.png';
+        finger.className = 'finger-effect';
+        
+        const randomOffset = (Math.random() - 0.5) * 50; 
+        finger.style.left = `calc(50% + ${randomOffset}px)`;
+        
+        document.body.appendChild(finger); 
+        
+        // Handle cleanup and reverting face
+        finger.addEventListener('animationend', () => {
+            finger.remove();
+            abuseGestureCount--;
+            
+            // Only revert if no other fingers are active AND we are still James Gunn
+            if (abuseGestureCount <= 0 && currentCharacterIndex === 4) {
+                abuseGestureCount = 0; // Safety reset
+                face.src = 'jamesgunn.png';
+            }
+        });
+    }
+
     function triggerSlap() {
         if (isSlapLocked) return;
         updateBounds(); 
         clearTimeout(returnToCenterTimer);
         faceWrapper.classList.remove('returning');
+        
         if (currentCharacterIndex === 4) {
             isSlapLocked = true;
             gunnSound.currentTime = 0;
@@ -80,6 +130,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function executeSlap() {
+        // BILLY SPECIAL LOGIC
+        if (currentCharacterIndex === 5) {
+            performBillyDeflection();
+            return;
+        }
+
+        // STANDARD LOGIC
         smackCountRef.transaction((currentCount) => (currentCount || 0) + 1);
         
         localSlapCount++;
@@ -87,8 +144,8 @@ document.addEventListener('DOMContentLoaded', () => {
             showGoodbyeButton();
         }
 
-        if (currentCharacterIndex === 2 && localSlapCount === 1 && !alexSpeechBubble) {
-            createAlexSpeechBubble();
+        if (currentCharacterIndex === 2 && localSlapCount === 1) {
+            showSpeechBubble("Please! Don't slap me 100 times! He might hear!", 10000);
         }
 
         const guide = document.createElement('div'); guide.className = 'attacker-guide';
@@ -136,17 +193,80 @@ document.addEventListener('DOMContentLoaded', () => {
         attacker.addEventListener('animationend', () => guide.remove());
     }
 
-    function createAlexSpeechBubble() {
-        alexSpeechBubble = document.createElement('div');
-        alexSpeechBubble.className = 'speech-bubble';
-        alexSpeechBubble.textContent = "Please! Don't slap me 100 times! He might hear!";
-        faceWrapper.appendChild(alexSpeechBubble);
+    // --- BILLY DEFLECTION LOGIC ---
+    function performBillyDeflection() {
+        smackCountRef.transaction((currentCount) => (currentCount || 0) - 1);
+        billySlapCount++;
+
+        if (billySlapCount === 20) {
+            window.location.href = "https://youtube.com/watch?v=2x15uu4YBMc";
+            return;
+        }
+        
+        if (billySlapCount === 10) {
+            showSpeechBubble("LAST CHANCE.", 3000);
+        } else if (billySlapCount === 5) {
+            showSpeechBubble("I'M WARNING YOU.", 3000);
+        } else if (billySlapCount === 1) {
+            showSpeechBubble("DO NOT HIT BILLY.", 3000);
+        }
+
+        const guide = document.createElement('div'); guide.className = 'attacker-guide';
+        const attacker = document.createElement('img'); 
+        
+        attacker.className = 'attacker-deflected';
+        attacker.src = 'hand.png';
+
+        const targetX = (bounds.wWidth / 2) + physics.x;
+        const targetY = (bounds.wHeight / 2) + physics.y;
+
+        const isLeft = Math.random() < 0.5;
+        let guideTransform = 'translate(-50%, -50%)';
+        guide.style.left = `${targetX}px`; guide.style.top = `${targetY}px`;
+        
+        if (isLeft) { guideTransform += ' scaleX(-1)'; } 
+        guide.style.transform = guideTransform;
+
+        guide.appendChild(attacker);
+        attackContainer.appendChild(guide);
+
         setTimeout(() => {
-            if (alexSpeechBubble) {
-                alexSpeechBubble.remove();
-                alexSpeechBubble = null;
+            slapSound.cloneNode(true).play();
+
+            // Rumble effect
+            faceWrapper.classList.remove('rumble-effect');
+            void faceWrapper.offsetWidth;
+            faceWrapper.classList.add('rumble-effect');
+
+            // Show Red -1
+            const minusOne = document.createElement('div');
+            minusOne.className = 'damage-text';
+            minusOne.textContent = "-1";
+            minusOne.style.left = `${targetX}px`;
+            minusOne.style.top = `${targetY - 50}px`;
+            attackContainer.appendChild(minusOne);
+            minusOne.addEventListener('animationend', () => minusOne.remove());
+
+        }, 180);
+
+        attacker.addEventListener('animationend', () => guide.remove());
+    }
+
+    function showSpeechBubble(text, duration) {
+        if (activeSpeechBubble) {
+            activeSpeechBubble.remove();
+        }
+        activeSpeechBubble = document.createElement('div');
+        activeSpeechBubble.className = 'speech-bubble';
+        activeSpeechBubble.textContent = text;
+        faceWrapper.appendChild(activeSpeechBubble);
+        
+        setTimeout(() => {
+            if (activeSpeechBubble && activeSpeechBubble.parentElement) {
+                activeSpeechBubble.remove();
+                activeSpeechBubble = null;
             }
-        }, 10000);
+        }, duration || 4000);
     }
 
     function switchCharacter(index) {
@@ -157,13 +277,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!Array.isArray(char.sound)) { characterSound.src = char.sound; }
         
         localSlapCount = 0;
+        billySlapCount = 0;
+        abuseGestureCount = 0; // Reset active gestures
         goodbyeButtonShown = false;
         buttonBar.classList.remove('hidden');
         goodbyeButton.classList.add('hidden');
         
-        if (alexSpeechBubble) {
-            alexSpeechBubble.remove();
-            alexSpeechBubble = null;
+        // Abuse Button visibility logic
+        if (index === 4) { // James Gunn
+            abuseContainer.classList.remove('hidden');
+        } else {
+            abuseContainer.classList.add('hidden');
+        }
+
+        if (activeSpeechBubble) {
+            activeSpeechBubble.remove();
+            activeSpeechBubble = null;
         }
 
         hardResetFaceState();
@@ -172,12 +301,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function hardResetFaceState() {
         isSlapLocked = false;
         gunnSound.pause();
-        if (alexSpeechBubble) {
-            alexSpeechBubble.remove();
-            alexSpeechBubble = null;
+        if (activeSpeechBubble) {
+            activeSpeechBubble.remove();
+            activeSpeechBubble = null;
         }
         physics.isRunning = false;
         faceWrapper.classList.remove('returning');
+        faceWrapper.classList.remove('rumble-effect');
         clearTimeout(returnToCenterTimer);
         Object.assign(physics, { x: 0, y: 0, vx: 0, vy: 0, angle: 0, va: 0, scaleX: 1, scaleY: 1, vsx: 0, vsy: 0 });
         faceWrapper.style.transform = 'translate(0, 0) rotate(0) scale(1,1)';
